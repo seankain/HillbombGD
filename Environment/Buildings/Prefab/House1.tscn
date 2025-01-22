@@ -1,0 +1,74 @@
+[gd_scene load_steps=8 format=3 uid="uid://bxi2xf7fmjfte"]
+
+[ext_resource type="PackedScene" uid="uid://qpum5mo6wurr" path="res://assets/models/door1.glb" id="1_0gb5w"]
+[ext_resource type="PackedScene" uid="uid://dab78g3ox2j7v" path="res://assets/models/garage_with_slope.glb" id="2_gowex"]
+[ext_resource type="PackedScene" uid="uid://dby5abo7cvgiq" path="res://assets/models/single_bay.glb" id="3_uxmj1"]
+[ext_resource type="Material" uid="uid://d3ute45a4lp6c" path="res://assets/materials/building_default.tres" id="4_jtedn"]
+[ext_resource type="PackedScene" uid="uid://b325tuey6l1y6" path="res://assets/models/window_1.glb" id="5_ibasb"]
+[ext_resource type="PackedScene" uid="uid://bx7o4v86psslv" path="res://assets/models/dentil_molding_straight.glb" id="6_drknc"]
+[ext_resource type="PackedScene" uid="uid://dlpgoni461vvc" path="res://assets/models/default_cube.glb" id="7_1q7m6"]
+
+[node name="House1" type="Node3D"]
+
+[node name="door1" parent="." instance=ExtResource("1_0gb5w")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 5.5, -1, -1.4)
+
+[node name="garage_with_slope" parent="." instance=ExtResource("2_gowex")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0, -1.6)
+
+[node name="single_bay" parent="." instance=ExtResource("3_uxmj1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7, 4.1, 0.5)
+
+[node name="single_bay2" parent="." instance=ExtResource("3_uxmj1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7, 7.4, 0.5)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 5.5, -5.5)
+visible = false
+size = Vector3(8, 11, 10)
+material = ExtResource("4_jtedn")
+
+[node name="window_1" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, 2.2, 8.2, 0.5)
+
+[node name="window_3" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 0.5, 8.2, 0.3)
+
+[node name="window_2" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, 3.6, 8.2, -0.4)
+
+[node name="window_4" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, 2.2, 4.9, 0.5)
+
+[node name="window_7" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, 5.8, 8.2, -0.4)
+
+[node name="window_8" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, 5.8, 4.9, -0.4)
+
+[node name="window_5" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 0.5, 4.9, 0.3)
+
+[node name="window_6" parent="." instance=ExtResource("5_ibasb")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, 3.6, 4.9, -0.4)
+
+[node name="dentil_molding_straight" parent="." instance=ExtResource("6_drknc")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1.5, 0, 1, 0, -4.37114e-08, 1.8, 10.9, 0.6)
+
+[node name="dentil_molding_straight5" parent="." instance=ExtResource("6_drknc")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1.5, 0, 0.707107, 0, -0.707107, 0.2, 10.9, 0)
+
+[node name="dentil_molding_straight4" parent="." instance=ExtResource("6_drknc")]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1.5, 0, 0.707107, 0, 0.707107, 3.37, 10.9, -0.12)
+
+[node name="dentil_molding_straight2" parent="." instance=ExtResource("6_drknc")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1.5, 0, 1, 0, -4.37114e-08, 4.7, 10.9, -0.5)
+
+[node name="dentil_molding_straight6" parent="." instance=ExtResource("6_drknc")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1.5, 0, 1, 0, -4.37114e-08, 3.7998e-07, 10.9, -0.5)
+
+[node name="dentil_molding_straight3" parent="." instance=ExtResource("6_drknc")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1.5, 0, 1, 0, -4.37114e-08, 6.3, 10.9, -0.5)
+
+[node name="default_cube" parent="." instance=ExtResource("7_1q7m6")]
+transform = Transform3D(4.06, 0, 0, 0, 7.05375, 0, 0, 0, 4.5, 3, 4, -5)

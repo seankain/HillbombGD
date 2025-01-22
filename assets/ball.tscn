@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3 uid="uid://c7bnglsbxijpw"]
+
+[ext_resource type="PackedScene" uid="uid://5ujof043taen" path="res://assets/watermelon.glb" id="1_uum32"]
+[ext_resource type="Script" path="res://assets/Ball.cs" id="1_vs6j5"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_wy8vl"]
+friction = 4.0
+rough = true
+bounce = 0.5
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wmag2"]
+radius = 1.06172
+height = 2.40459
+
+[node name="Watermelon" type="RigidBody3D" node_paths=PackedStringArray("CameraRig", "CameraXPivot", "FloorCheck")]
+mass = 100.0
+physics_material_override = SubResource("PhysicsMaterial_wy8vl")
+angular_damp = 1.0
+script = ExtResource("1_vs6j5")
+CameraRig = NodePath("CameraRig")
+CameraXPivot = NodePath("CameraRig/CameraXPivot")
+FloorCheck = NodePath("FloorCheck")
+
+[node name="watermelon" parent="." instance=ExtResource("1_uum32")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_wmag2")
+
+[node name="CameraRig" type="Marker3D" parent="."]
+
+[node name="CameraXPivot" type="Marker3D" parent="CameraRig"]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/CameraXPivot"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 1.60848, -7.90709)
+
+[node name="FloorCheck" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0606266, 0)

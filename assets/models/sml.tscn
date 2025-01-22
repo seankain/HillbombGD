@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://lhvwnjradip1"]
+
+[ext_resource type="PackedScene" uid="uid://bddgeivr53v51" path="res://assets/models/street_mesh_library.blend" id="1_6c36l"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="street_mesh_library" parent="." instance=ExtResource("1_6c36l")]
