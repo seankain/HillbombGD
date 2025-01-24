@@ -69,6 +69,16 @@ public partial class ChunkTrigger : Area3D
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		this.BodyEntered += (o) =>
+		{
+			GD.Print(o.Name);
+			OnChunkEntered(new ChunkTransitEventArgs());
+		};
+		this.BodyExited += (o) =>
+		{
+			GD.Print(o.Name);
+			OnChunkExited(new ChunkTransitEventArgs());
+		};
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

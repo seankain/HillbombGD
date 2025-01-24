@@ -27,7 +27,7 @@ points = PackedVector3Array(14.6893, 0.193472, -7.30395, 14.6893, -0.204492, -7.
 [sub_resource type="BoxShape3D" id="BoxShape3D_gngta"]
 size = Vector3(50, 50, 3)
 
-[node name="HillChunk" type="Node3D"]
+[node name="HillChunk" type="Node3D" groups=["Chunks"]]
 script = ExtResource("1_j880e")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
