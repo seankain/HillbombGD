@@ -245,11 +245,47 @@ public partial class ChunkCycler : Node3D
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		var chunkPool = GetTree().GetNodesInGroup("Chunks");
+
+		foreach (var c in chunkPool)
+		{
+			var hc = c.GetChildByType<HillChunk>();
+			if (hc != null)
+			{
+				ChunkPool.Add(hc);
+			}
+		}
+		FrontPool = new List<HillChunk>();
+		PassedPool = new List<HillChunk>();
+		FrontPool.AddRange(ChunkPool);
+		//TODO rewire player respawn event
+		// playerController = Player.GetComponent<BoardControllerBase>();
+		// playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
+		foreach (var chunk in ChunkPool)
+		{
+			if (chunk.Occupied && chunk.IsPositionResetChunk)
+			{
+				//Going to move all of the chunks back to around zero to avoid floating point issues from sustained play
+				//var pos = chunk.gameObject.transform.position;
+				var pos = chunk.GlobalPosition;
+				var distance = pos.DistanceTo(Vector3.Zero);
+				foreach (var c in ChunkPool)
+				{
+					c.GlobalPosition -= pos;
+				}
+				Player.GlobalPosition -= pos;
+				MoveObstacles(chunk, pos);
+			}
+			if (chunk.Passed)
+			{
+				MoveChunk(chunk);
+			}
+		}
 	}
 
 }

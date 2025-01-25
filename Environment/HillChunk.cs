@@ -9,14 +9,17 @@ public partial class HillChunk : Node3D
 
     public Node3D ChunkStart;
     public Node3D ChunkEnd;
+
+    [Export]
+    public Area3D EntryTriggerArea;
+    [Export]
+    public Area3D ExitTriggerArea;
     public bool IsPositionResetChunk;
     public bool Passed = false;
     public bool Occupied = false;
     public bool IsRespawnChunk = false;
 
-    [Export]
     public ChunkTrigger EntryTrigger;
-    [Export]
     public ChunkTrigger ExitTrigger;
 
     //public Waypoint InboundTopWaypoint;
@@ -32,7 +35,9 @@ public partial class HillChunk : Node3D
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
+        EntryTrigger = EntryTriggerArea as ChunkTrigger;
         EntryTrigger.ChunkEntered += HandleChunkEnter;
+        ExitTrigger = ExitTriggerArea as ChunkTrigger;
         ExitTrigger.ChunkExited += HandleChunkExit;
     }
 

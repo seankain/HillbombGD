@@ -50,9 +50,15 @@ shader_parameter/color4 = Color(0, 0.267, 1, 1)
 script = ExtResource("1_xfd5p")
 
 [node name="HillChunk" parent="HillChunks" instance=ExtResource("1_wcm61")]
+unique_name_in_owner = true
 
 [node name="HillChunk2" parent="HillChunks" instance=ExtResource("1_wcm61")]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.23517e-08, -29.3, 123.6)
+
+[node name="HillChunk3" parent="HillChunks" instance=ExtResource("1_wcm61")]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -58.5, 247.3)
 
 [node name="Watermelon" parent="." instance=ExtResource("2_qggga")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2)
