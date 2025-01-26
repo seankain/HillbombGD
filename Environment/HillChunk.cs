@@ -6,8 +6,9 @@ public delegate void ChunkPassedEventHandler(object sender, ChunkPassedEventArgs
 
 public partial class HillChunk : Node3D
 {
-
+    [Export]
     public Node3D ChunkStart;
+    [Export]
     public Node3D ChunkEnd;
 
     [Export]

@@ -52,18 +52,23 @@ public partial class ChunkCycler : Node3D
 	public Node3D Player;
 	private roller playerController;
 
-	// Start is called before the first frame update
-	void Start()
+	// Called when the node enters the scene tree for the first time.
+	public override void _Ready()
 	{
-		var chunkPool = GetTree().GetNodesInGroup("Chunks");
+		ChunkPool = new List<HillChunk>();
+		var sceneChunks = GetTree().GetNodesInGroup("Chunks");
 
-		foreach (var c in chunkPool)
+		foreach (var c in sceneChunks)
 		{
-			var hc = c.GetChildByType<HillChunk>();
-			if (hc != null)
+			if (c is HillChunk)
 			{
-				ChunkPool.Add(hc);
+				ChunkPool.Add(c as HillChunk);
 			}
+			// var hc = c.GetChildByType<HillChunk>();
+			// if (hc != null)
+			// {
+			// 	ChunkPool.Add(hc);
+			// }
 		}
 		FrontPool = new List<HillChunk>();
 		PassedPool = new List<HillChunk>();
@@ -71,6 +76,31 @@ public partial class ChunkCycler : Node3D
 		//TODO rewire player respawn event
 		// playerController = Player.GetComponent<BoardControllerBase>();
 		// playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
+	}
+
+	// Called every frame. 'delta' is the elapsed time since the previous frame.
+	public override void _Process(double delta)
+	{
+		foreach (var chunk in ChunkPool)
+		{
+			if (chunk.Occupied && chunk.IsPositionResetChunk)
+			{
+				//Going to move all of the chunks back to around zero to avoid floating point issues from sustained play
+				//var pos = chunk.gameObject.transform.position;
+				var pos = chunk.GlobalPosition;
+				var distance = pos.DistanceTo(Vector3.Zero);
+				foreach (var c in ChunkPool)
+				{
+					c.GlobalPosition -= pos;
+				}
+				Player.GlobalPosition -= pos;
+				MoveObstacles(chunk, pos);
+			}
+			if (chunk.Passed)
+			{
+				MoveChunk(chunk);
+			}
+		}
 	}
 
 	private void ChunkCycler_PlayerRespawned(object sender, System.EventArgs e)
@@ -112,31 +142,6 @@ public partial class ChunkCycler : Node3D
 			contentChunk.Passed = false;
 		}
 
-	}
-
-	// Update is called once per frame
-	void Update()
-	{
-		foreach (var chunk in ChunkPool)
-		{
-			if (chunk.Occupied && chunk.IsPositionResetChunk)
-			{
-				//Going to move all of the chunks back to around zero to avoid floating point issues from sustained play
-				//var pos = chunk.gameObject.transform.position;
-				var pos = chunk.GlobalPosition;
-				var distance = pos.DistanceTo(Vector3.Zero);
-				foreach (var c in ChunkPool)
-				{
-					c.GlobalPosition -= pos;
-				}
-				Player.GlobalPosition -= pos;
-				MoveObstacles(chunk, pos);
-			}
-			if (chunk.Passed)
-			{
-				MoveChunk(chunk);
-			}
-		}
 	}
 
 	public bool TryGetNeighborChunk(HillChunk currentChunk, TravelDirection direction, out HillChunk neighborChunk)
@@ -239,52 +244,6 @@ public partial class ChunkCycler : Node3D
 			WaterPlane.GlobalPosition.MoveToward(min, (float)this.GetPhysicsProcessDeltaTime() * 5f);
 			//WaterPlane.GlobalPosition = Vector3.MoveTowards(WaterPlane.GlobalPosition, min, Time.deltaTime * 5f);
 			yield return null;
-		}
-	}
-
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
-		var chunkPool = GetTree().GetNodesInGroup("Chunks");
-
-		foreach (var c in chunkPool)
-		{
-			var hc = c.GetChildByType<HillChunk>();
-			if (hc != null)
-			{
-				ChunkPool.Add(hc);
-			}
-		}
-		FrontPool = new List<HillChunk>();
-		PassedPool = new List<HillChunk>();
-		FrontPool.AddRange(ChunkPool);
-		//TODO rewire player respawn event
-		// playerController = Player.GetComponent<BoardControllerBase>();
-		// playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
-	}
-
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-		foreach (var chunk in ChunkPool)
-		{
-			if (chunk.Occupied && chunk.IsPositionResetChunk)
-			{
-				//Going to move all of the chunks back to around zero to avoid floating point issues from sustained play
-				//var pos = chunk.gameObject.transform.position;
-				var pos = chunk.GlobalPosition;
-				var distance = pos.DistanceTo(Vector3.Zero);
-				foreach (var c in ChunkPool)
-				{
-					c.GlobalPosition -= pos;
-				}
-				Player.GlobalPosition -= pos;
-				MoveObstacles(chunk, pos);
-			}
-			if (chunk.Passed)
-			{
-				MoveChunk(chunk);
-			}
 		}
 	}
 
