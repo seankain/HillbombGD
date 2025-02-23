@@ -1,0 +1,38 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://5fivfmf2mm2o"
+path.s3tc="res://.godot/imported/watermelon_gib_low_vert_food_0001_normal_opengl_2k.png-4d2a7a2cf4f9658c108b5e4d4377047d.s3tc.ctex"
+metadata={
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+generator_parameters={
+"md5": "56272bd78cf521b3156c93fcf097d57a"
+}
+
+[deps]
+
+source_file="res://assets/models/watermelon_gib_low_vert_food_0001_normal_opengl_2k.png"
+dest_files=["res://.godot/imported/watermelon_gib_low_vert_food_0001_normal_opengl_2k.png-4d2a7a2cf4f9658c108b5e4d4377047d.s3tc.ctex"]
+
+[params]
+
+compress/mode=2
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=1
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=1
+roughness/src_normal="res://assets/models/watermelon_gib_low_vert_food_0001_normal_opengl_2k.png"
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=0

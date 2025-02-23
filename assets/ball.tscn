@@ -32,7 +32,7 @@ shape = SubResource("CapsuleShape3D_wmag2")
 [node name="CameraXPivot" type="Marker3D" parent="CameraRig"]
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig/CameraXPivot"]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 1.60848, -7.90709)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.388, -2.412)
 
 [node name="FloorCheck" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0606266, 0)

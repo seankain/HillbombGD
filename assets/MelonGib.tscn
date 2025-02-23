@@ -1,0 +1,64 @@
+[gd_scene load_steps=6 format=3 uid="uid://bkw6mnq4bd64n"]
+
+[ext_resource type="Script" path="res://assets/Ball.cs" id="1_twoq0"]
+[ext_resource type="PackedScene" uid="uid://5ujof043taen" path="res://assets/watermelon.glb" id="2_ewhou"]
+[ext_resource type="PackedScene" uid="uid://dx4cksu3w8kcn" path="res://assets/models/watermelon_gib_low_vert.glb" id="3_2ufso"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_wy8vl"]
+friction = 4.0
+rough = true
+bounce = 0.5
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wmag2"]
+radius = 1.06172
+height = 2.40459
+
+[node name="Watermelon" type="RigidBody3D" node_paths=PackedStringArray("CameraRig", "CameraXPivot", "FloorCheck")]
+mass = 100.0
+physics_material_override = SubResource("PhysicsMaterial_wy8vl")
+angular_damp = 1.0
+script = ExtResource("1_twoq0")
+CameraRig = NodePath("CameraRig")
+CameraXPivot = NodePath("CameraRig/CameraXPivot")
+FloorCheck = NodePath("FloorCheck")
+
+[node name="watermelon" parent="." instance=ExtResource("2_ewhou")]
+visible = false
+
+[node name="watermelon_gib_low_vert" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.0137051, 0.043672)
+
+[node name="watermelon_gib_low_vert2" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, -0.737242, 0.675629, 0, -0.675629, -0.737242, 0, 0.0395333, -0.000276983)
+
+[node name="watermelon_gib_low_vert3" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, -0.997441, -0.0714975, 0, 0.0714975, -0.997441, 0, 0.0606517, -0.0208244)
+
+[node name="watermelon_gib_low_vert4" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, -0.643429, -0.765506, 0, 0.765506, -0.643429, 0, -0.0132669, -0.0673358)
+
+[node name="watermelon_gib_low_vert5" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, 0.16959, -0.985515, 0, 0.985515, 0.16959, 0, -0.0909018, -0.0965681)
+
+[node name="watermelon_gib_low_vert6" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, 0.846388, -0.532566, 0, 0.532566, 0.846388, 0, -0.114488, -0.046854)
+
+[node name="watermelon_gib_low_vert7" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, 0.990617, 0.136667, 0, -0.136667, 0.990617, 0, -0.0959946, 0.0288587)
+
+[node name="watermelon_gib_low_vert8" parent="." instance=ExtResource("3_2ufso")]
+transform = Transform3D(1, 0, 0, 0, 0.590437, 0.807084, 0, -0.807084, 0.590437, 0, -0.0399036, 0.0558836)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_wmag2")
+
+[node name="CameraRig" type="Marker3D" parent="."]
+
+[node name="CameraXPivot" type="Marker3D" parent="CameraRig"]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/CameraXPivot"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.758, -4.197)
+
+[node name="FloorCheck" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0606266, 0)

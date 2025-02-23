@@ -1,6 +1,11 @@
 using Godot;
 using System;
 
+
+public class PlayerRespawnArgs { }
+
+public delegate void PlayerRespawnedEventHandler(object sender, PlayerRespawnArgs e);
+
 public partial class Ball : RigidBody3D
 {
 
@@ -10,6 +15,9 @@ public partial class Ball : RigidBody3D
 	public Marker3D CameraXPivot;
 
 	[Export]
+	public float CameraChaseSpeed = 1.0f;
+
+	[Export]
 	public RayCast3D FloorCheck;
 	[Export]
 	public float RollingForce = 40f;
@@ -17,6 +25,8 @@ public partial class Ball : RigidBody3D
 	public float JumpForce = 1000f;
 	[Export]
 	public float MouseSensitivity = 0.1f;
+
+	public PlayerRespawnedEventHandler PlayerRespawned;
 
 
 	// Called when the node enters the scene tree for the first time.
@@ -61,6 +71,10 @@ public partial class Ball : RigidBody3D
 			{
 				GetTree().Quit();
 			}
+			if (eventKey.Pressed && eventKey.Keycode == Key.R)
+			{
+				Respawn();
+			}
 		}
 	}
 
@@ -73,7 +87,7 @@ public partial class Ball : RigidBody3D
 	{
 		//CameraRig.GlobalPosition = 
 
-		var updatedPos = CameraRig.GlobalPosition.Lerp(GlobalPosition, (float)delta);
+		var updatedPos = CameraRig.GlobalPosition.Lerp(GlobalPosition, (float)delta * CameraChaseSpeed);
 		// TODO Get mouse position info 
 		//updatedPos = RotateAround(CameraRig.GlobalTransform, updatedPos, 2f, 2f);
 		//CameraRig.LookAtFromPosition(updatedPos, GlobalPosition);
@@ -115,5 +129,27 @@ public partial class Ball : RigidBody3D
 		{
 			ApplyImpulse(Vector3.Zero, Vector3.Up * JumpForce);
 		}
+	}
+
+	private void Respawn()
+	{
+		//GD.Print("Respawn");
+		//Bailed = false;
+		//bailElapsed = 0f;
+
+		var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
+		GD.Print(respawn.GlobalPosition);
+		//characterState.gameObject.transform.parent = characterParent;
+		//characterState.gameObject.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0, 90, 0));
+		//PlayerRespawned(new PlayerRespawnArgs());
+		//this.GlobalPosition = respawn.GlobalPosition;
+		//this.GlobalPosition = Vector3.Zero;
+		this.GlobalTransform = new Transform3D(respawn.GlobalTransform.Basis, respawn.GlobalPosition);
+		this.PlayerRespawned?.Invoke(this, new PlayerRespawnArgs());
+		//this.transform.position = respawn.transform.position;
+		//this.transform.rotation = Quaternion.identity;
+		this.LinearVelocity = Vector3.Zero;
+		this.AngularVelocity = Vector3.Zero;
+		//rb.velocity = Vector3.zero;
 	}
 }

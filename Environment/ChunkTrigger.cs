@@ -71,12 +71,10 @@ public partial class ChunkTrigger : Area3D
 	{
 		this.BodyEntered += (o) =>
 		{
-			GD.Print(o.Name);
 			OnChunkEntered(new ChunkTransitEventArgs());
 		};
 		this.BodyExited += (o) =>
 		{
-			GD.Print(o.Name);
 			OnChunkExited(new ChunkTransitEventArgs());
 		};
 	}

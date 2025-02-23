@@ -1,6 +1,6 @@
 using Godot;
 using System;
-public class ChunkPassedEventArgs { }
+public class ChunkPassedEventArgs { public HillChunk PassedChunk { get; set; } }
 
 public delegate void ChunkPassedEventHandler(object sender, ChunkPassedEventArgs e);
 
@@ -15,9 +15,11 @@ public partial class HillChunk : Node3D
     public Area3D EntryTriggerArea;
     [Export]
     public Area3D ExitTriggerArea;
+    [Export]
     public bool IsPositionResetChunk;
     public bool Passed = false;
     public bool Occupied = false;
+    [Export]
     public bool IsRespawnChunk = false;
 
     public ChunkTrigger EntryTrigger;
@@ -65,7 +67,7 @@ public partial class HillChunk : Node3D
     {
         Passed = true;
         Occupied = false;
-        OnChunkPassed(new ChunkPassedEventArgs());
+        OnChunkPassed(new ChunkPassedEventArgs { PassedChunk = this });
 
     }
 

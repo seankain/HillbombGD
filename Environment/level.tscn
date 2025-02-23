@@ -46,11 +46,14 @@ shader_parameter/color4 = Color(0, 0.267, 1, 1)
 
 [node name="Level" type="Node3D"]
 
-[node name="HillChunks" type="Node3D" parent="."]
+[node name="HillChunks" type="Node3D" parent="." node_paths=PackedStringArray("Player", "playerController")]
 script = ExtResource("1_xfd5p")
+Player = NodePath("../Watermelon")
+playerController = NodePath("../Watermelon")
 
 [node name="HillChunk" parent="HillChunks" instance=ExtResource("1_wcm61")]
 unique_name_in_owner = true
+IsRespawnChunk = true
 
 [node name="HillChunk2" parent="HillChunks" instance=ExtResource("1_wcm61")]
 unique_name_in_owner = true
@@ -63,6 +66,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -58.5, 247.3)
 [node name="Watermelon" parent="." instance=ExtResource("2_qggga")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2)
 gravity_scale = 8.0
+CameraChaseSpeed = 10.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_ghquh")

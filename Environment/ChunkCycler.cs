@@ -48,9 +48,11 @@ public partial class ChunkCycler : Node3D
 	public Node3D WaterPlane;
 	public List<HillChunk> ChunkPool;
 	private List<HillChunk> FrontPool;
-	private List<HillChunk> PassedPool;
+	private Queue<HillChunk> PassedPool;
+	[Export]
 	public Node3D Player;
-	private roller playerController;
+	[Export]
+	public Ball playerController;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -62,6 +64,7 @@ public partial class ChunkCycler : Node3D
 		{
 			if (c is HillChunk)
 			{
+				((HillChunk)c).ChunkPassed += HandleChunkPassed;
 				ChunkPool.Add(c as HillChunk);
 			}
 			// var hc = c.GetChildByType<HillChunk>();
@@ -71,11 +74,19 @@ public partial class ChunkCycler : Node3D
 			// }
 		}
 		FrontPool = new List<HillChunk>();
-		PassedPool = new List<HillChunk>();
+		PassedPool = new Queue<HillChunk>();
 		FrontPool.AddRange(ChunkPool);
 		//TODO rewire player respawn event
+		//var playerControllerTree = playerController.GetTree();
+		//playerController = Player.GetScript().As<Ball>();
+		//playerController = Player.GetChild<Ball>(0);
 		// playerController = Player.GetComponent<BoardControllerBase>();
-		// playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
+		playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
+	}
+
+	private void HandleChunkPassed(object sender, ChunkPassedEventArgs e)
+	{
+		MoveChunk(e.PassedChunk);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -96,14 +107,14 @@ public partial class ChunkCycler : Node3D
 				Player.GlobalPosition -= pos;
 				MoveObstacles(chunk, pos);
 			}
-			if (chunk.Passed)
-			{
-				MoveChunk(chunk);
-			}
+			// if (chunk.Passed)
+			// {
+			// 	MoveChunk(chunk);
+			// }
 		}
 	}
 
-	private void ChunkCycler_PlayerRespawned(object sender, System.EventArgs e)
+	private void ChunkCycler_PlayerRespawned(object sender, PlayerRespawnArgs e)
 	{
 		ResetChunks();
 	}
@@ -177,6 +188,15 @@ public partial class ChunkCycler : Node3D
 
 	void MoveChunk(HillChunk chunk)
 	{
+		// Didn't want the immediate rear chunk to be 
+		// moved because it was too obvious during play
+		// and will probably keep allowing camera to look back
+		PassedPool.Enqueue(chunk);
+		if (PassedPool.Count > 1)
+		{
+			chunk = PassedPool.Dequeue();
+		}
+		else { return; }
 		var minChunkEnd = FindMinChunkEnd();
 		var dist = chunk.ChunkStart.GlobalPosition - minChunkEnd;
 		chunk.GlobalPosition = (chunk.GlobalPosition - dist);
@@ -197,7 +217,7 @@ public partial class ChunkCycler : Node3D
 		chunk.Passed = false;
 		//WaterPlane.transform.position = new Vector3(WaterPlane.transform.position.x, minChunkEnd.y - WaterPlaneOffset, WaterPlane.transform.position.z);
 		MoveObstacles(chunk, dist);
-		Coroutines.StartCoroutine((System.Collections.IEnumerable)LowerWaterPlane());
+		//Coroutines.StartCoroutine((System.Collections.IEnumerable)LowerWaterPlane());
 		chunk.CycleObstacles();
 	}
 
