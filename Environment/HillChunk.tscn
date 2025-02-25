@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://dmiepdhvmkek4"]
+[gd_scene load_steps=22 format=3 uid="uid://dmiepdhvmkek4"]
 
 [ext_resource type="PackedScene" uid="uid://bu7vjbcy60yob" path="res://assets/models/street_flat.glb" id="1_hcaeu"]
 [ext_resource type="Script" path="res://Environment/HillChunk.cs" id="1_j880e"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://cone1uqdmqf4i" path="res://assets/models/sf_house3.glb" id="12_ygw1s"]
 [ext_resource type="Script" path="res://Environment/ChunkTrigger.cs" id="13_0kkut"]
 [ext_resource type="PackedScene" uid="uid://df6i2vde8dtm3" path="res://Environment/Buildings/Prefab/House3.tscn" id="14_owvnk"]
+[ext_resource type="PackedScene" uid="uid://byfyafae7qwo2" path="res://Environment/Buildings/Prefab/House4.tscn" id="16_sgxsd"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -235,5 +236,38 @@ transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -43.9,
 [node name="House3" parent="." instance=ExtResource("14_owvnk")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 29, -27, 92)
 
+[node name="House15" parent="." instance=ExtResource("14_owvnk")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -29, -27, 88)
+
 [node name="RespawnPoint" type="Node3D" parent="." groups=["Respawn"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1)
+
+[node name="House4" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, 1, 7)
+
+[node name="House5" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -1, 15)
+
+[node name="House6" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -3.6, 23)
+
+[node name="House7" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -5.9, 31)
+
+[node name="House8" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -8.5, 39)
+
+[node name="House9" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -10.8, 47)
+
+[node name="House10" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -13.8, 55)
+
+[node name="House11" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -15.8, 63)
+
+[node name="House12" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -17.8, 70)
+
+[node name="House13" parent="." instance=ExtResource("16_sgxsd")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -20.6, 78)

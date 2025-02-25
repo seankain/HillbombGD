@@ -28,6 +28,8 @@ public partial class Ball : RigidBody3D
 
 	public PlayerRespawnedEventHandler PlayerRespawned;
 
+	private bool respawnPressed = false;
+
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -73,7 +75,8 @@ public partial class Ball : RigidBody3D
 			}
 			if (eventKey.Pressed && eventKey.Keycode == Key.R)
 			{
-				Respawn();
+				//Respawn();
+				respawnPressed = true;
 			}
 		}
 	}
@@ -131,25 +134,23 @@ public partial class Ball : RigidBody3D
 		}
 	}
 
+	public override void _IntegrateForces(PhysicsDirectBodyState3D state)
+	{
+		base._IntegrateForces(state);
+		if (respawnPressed)
+		{
+			Respawn();
+			respawnPressed = false;
+		}
+
+	}
+
 	private void Respawn()
 	{
-		//GD.Print("Respawn");
-		//Bailed = false;
-		//bailElapsed = 0f;
-
 		var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
-		GD.Print(respawn.GlobalPosition);
-		//characterState.gameObject.transform.parent = characterParent;
-		//characterState.gameObject.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0, 90, 0));
-		//PlayerRespawned(new PlayerRespawnArgs());
-		//this.GlobalPosition = respawn.GlobalPosition;
-		//this.GlobalPosition = Vector3.Zero;
 		this.GlobalTransform = new Transform3D(respawn.GlobalTransform.Basis, respawn.GlobalPosition);
 		this.PlayerRespawned?.Invoke(this, new PlayerRespawnArgs());
-		//this.transform.position = respawn.transform.position;
-		//this.transform.rotation = Quaternion.identity;
 		this.LinearVelocity = Vector3.Zero;
 		this.AngularVelocity = Vector3.Zero;
-		//rb.velocity = Vector3.zero;
 	}
 }

@@ -152,6 +152,7 @@ public partial class ChunkCycler : Node3D
 			contentChunk.Occupied = false;
 			contentChunk.Passed = false;
 		}
+		this.PassedPool.Clear();
 
 	}
 
