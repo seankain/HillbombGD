@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://jrlbu1rd5gmk"]
+
+[ext_resource type="PackedScene" uid="uid://bckd3gnajy2gb" path="res://assets/models/shitbox.glb" id="1_2wo36"]
+
+[node name="shitbox" instance=ExtResource("1_2wo36")]
