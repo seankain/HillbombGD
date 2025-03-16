@@ -1,10 +1,14 @@
 using Godot;
 using System;
+using System.Runtime.InteropServices;
 
 public partial class BoardController : CharacterBody3D
 {
 	public const float Speed = 5.0f;
 	public const float JumpVelocity = 4.5f;
+	// Trying to reduce the floaty feeling when falling
+	[Export]
+	public float DownFallModifier = 1.65f;
 
 	[Export]
 	public double AirDensity = 1.225;
@@ -16,6 +20,12 @@ public partial class BoardController : CharacterBody3D
 	public double ReferenceArea = 0.015;
 	[Export]
 	public double FrictionCoefficient = 0.02;
+
+	[Export]
+	public RayCast3D FrontTruckRay;
+
+	[Export]
+	public RayCast3D RearTruckRay;
 
 	public Node3D LeftFrontWheel;
 	public Node3D RightFrontWheel;
@@ -397,6 +407,29 @@ public partial class BoardController : CharacterBody3D
 	// 	//}
 	// }
 
+	/// <summary>
+	///  From https://kidscancode.org/godot_recipes/3.x/3d/3d_align_surface/
+	///  Given a transform and a new Y direction vector, this function returns the transform rotated so that its basis.y is aligned with the given normal.
+	/// </summary>
+	/// <param name="transform"> The input transform </param>
+	/// <param name="yDirVec">The y direction vector</param>
+	/// <returns></returns>
+	private Transform3D alignWithY(Transform3D transform, Vector3 yDirVec)
+	{
+		transform.Basis.Y = yDirVec;
+		transform.Basis.X = -transform.Basis.Z.Cross(yDirVec);
+		transform.Basis = transform.Basis.Orthonormalized();
+		return transform;
+	}
+
+	private Vector3 AverageNormalized(Vector3 a, Vector3 b)
+	{
+		var averaged = Vector3.Zero;
+		averaged.X = (a.X + b.X) / 2;
+		averaged.Y = (a.Y + b.Y) / 2;
+		averaged.Z = (a.Z + b.Z) / 2;
+		return averaged;
+	}
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
@@ -411,8 +444,8 @@ public partial class BoardController : CharacterBody3D
 
 	private double CalculateVelocity(double deltaTime, double hillAngle, double currentVelocity)
 	{
-		const double gravity = 9.81; // acceleration due to gravity (m/s^2)
-									 // standard air density kg per meter cubed
+		//const double gravity = 9.81; // acceleration due to gravity (m/s^2)
+		// standard air density kg per meter cubed
 
 		// Convert the hill angle to radians
 		double hillAngleRadians = hillAngle * Math.PI / 180.0;
@@ -443,7 +476,33 @@ public partial class BoardController : CharacterBody3D
 
 		// Add the gravity.
 		if (!IsOnFloor())
-			velocity.Y -= gravity * (float)delta;
+		{
+			velocity.Y -= gravity * DownFallModifier * (float)delta;
+		}
+		else
+		{
+			/*
+			if $FrontRay.is_colliding() or $RearRay.is_colliding():
+    # If one wheel is in air, move it down
+    var nf = $FrontRay.get_collision_normal() if $FrontRay.is_colliding() else Vector3.UP
+    var nr = $RearRay.get_collision_normal() if $RearRay.is_colliding() else Vector3.UP
+    var n = ((nr + nf) / 2.0).normalized()
+    var xform = align_with_y(global_transform, n)
+    global_transform = global_transform.interpolate_with(xform, 0.1)
+			*/
+			//If one wheel is in air move it down
+			var nf = Vector3.Up;
+			if (FrontTruckRay.IsColliding()) { nf = FrontTruckRay.GetCollisionNormal(); GD.Print($"Front truck {nf}"); }
+			var nr = Vector3.Up;
+			if (RearTruckRay.IsColliding()) { nr = RearTruckRay.GetCollisionNormal(); GD.Print($"Rear truck {nr}"); }
+			var n = AverageNormalized(nr, nf);
+			var xform = alignWithY(this.Transform, n);
+			this.GlobalTransform = GlobalTransform.InterpolateWith(xform, 0.5f);
+			// dumb hack to keep board facing down the hill but will need to be changed when powerslides can happen
+			this.Rotation = new Vector3(this.Rotation.X, 0, this.Rotation.Z);
+			//this.Rotation = this.GetFloorNormal();
+			//this.RotationDegrees = new Vector3(this.GetFloorAngle() * 180 / Mathf.Pi, 0, 0);
+		}
 
 		// Handle Jump.
 		if (Input.IsActionJustPressed("Jump") && IsOnFloor())
@@ -466,7 +525,7 @@ public partial class BoardController : CharacterBody3D
 			//velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
 		}
 		velocity.Z = (float)CalculateVelocity(delta, 17, Velocity.Z);
-		GD.Print(velocity.Z);
+		//GD.Print(velocity.Z);
 		Velocity = velocity;
 		MoveAndSlide();
 	}

@@ -66,6 +66,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -58.5, 247.3)
 
 [node name="BoardController" parent="." instance=ExtResource("3_rc8w2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+DownFallModifier = 3.0
 RollingResistanceCoefficient = 0.001
 
 [node name="Watermelon" parent="." instance=ExtResource("2_qggga")]

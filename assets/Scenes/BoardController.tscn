@@ -1,22 +1,98 @@
-[gd_scene load_steps=4 format=3 uid="uid://c2wotjcw6i6qq"]
+[gd_scene load_steps=10 format=3 uid="uid://c2wotjcw6i6qq"]
 
 [ext_resource type="Script" path="res://assets/Scenes/BoardController.cs" id="1_3dtu5"]
 [ext_resource type="PackedScene" uid="uid://blfbgnlhkkf1f" path="res://assets/models/Character/skateboard_deck.glb" id="1_eh84d"]
+[ext_resource type="Script" path="res://assets/Scripts/CameraController.cs" id="3_q0hk0"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_eswmq"]
 
-[node name="BoardController" type="CharacterBody3D"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_u6wy5"]
+size = Vector3(1, 0.2, 1.9)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_gvn2s"]
+height = 0.6
+radius = 0.07
+
+[sub_resource type="Animation" id="Animation_uuk71"]
+resource_name = "TurnRight"
+length = 0.2
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("skateboard_deck/Deck")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.2, 1, 0.055, 0, 0, 0.998)
+
+[sub_resource type="Animation" id="Animation_c4tar"]
+resource_name = "TurnLeft"
+length = 0.2
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("skateboard_deck/Deck")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.2, 1, -0.055, 0, 0, 0.998)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_6sh17"]
+_data = {
+"TurnLeft": SubResource("Animation_c4tar"),
+"TurnRight": SubResource("Animation_uuk71")
+}
+
+[node name="BoardController" type="CharacterBody3D" node_paths=PackedStringArray("FrontTruckRay", "RearTruckRay")]
 script = ExtResource("1_3dtu5")
+FrontTruckRay = NodePath("skateboard_deck/FrontTruckRayCast")
+RearTruckRay = NodePath("skateboard_deck/RearTruckRaycast")
 
 [node name="skateboard_deck" parent="." instance=ExtResource("1_eh84d")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
 
-[node name="SpringArm3D" type="SpringArm3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.695, -3)
+[node name="Deck" parent="skateboard_deck" index="0"]
+transform = Transform3D(0.291035, 0, 0, 0, 0.0105203, 0, 0, 0, 0.291035, 0, 0, 0)
 
-[node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, -0.2, 0)
+[node name="FrontTruckRayCast" type="RayCast3D" parent="skateboard_deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, -2.62268e-08)
+target_position = Vector3(0, -0.25, 0)
+
+[node name="RearTruckRaycast" type="RayCast3D" parent="skateboard_deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0, 3.0598e-08)
+target_position = Vector3(0, -0.24, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("CapsuleShape3D_eswmq")
+
+[node name="CameraController" type="Node3D" parent="." node_paths=PackedStringArray("TrackedNode")]
+top_level = true
+script = ExtResource("3_q0hk0")
+TrackedNode = NodePath("..")
+
+[node name="CameraTarget" type="Node3D" parent="CameraController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -3)
+
+[node name="Camera3D" type="Camera3D" parent="CameraController/CameraTarget"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="DeckCollisionShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.45058e-09, -0.05)
+shape = SubResource("BoxShape3D_u6wy5")
+disabled = true
+
+[node name="FrontTruckCollisionShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, -0.08, 0.53)
+shape = SubResource("CylinderShape3D_gvn2s")
+disabled = true
+
+[node name="FrontTruckCollisionShape2" type="CollisionShape3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, -0.08, -0.64)
+shape = SubResource("CylinderShape3D_gvn2s")
+disabled = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_6sh17")
+}
+
+[editable path="skateboard_deck"]

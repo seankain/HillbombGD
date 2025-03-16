@@ -202,6 +202,7 @@ public partial class ChunkCycler : Node3D
 		var dist = chunk.ChunkStart.GlobalPosition - minChunkEnd;
 		chunk.GlobalPosition = (chunk.GlobalPosition - dist);
 		//Debug.Log($"Moving {chunk.name} to  {chunk.transform.position}");
+		GD.Print($"Moving {chunk.Name} from passed pool to {chunk.GlobalPosition}");
 		chunk.Passed = false;
 		//WaterPlane.transform.position = new Vector3(WaterPlane.transform.position.x, minChunkEnd.y - WaterPlaneOffset, WaterPlane.transform.position.z);
 		MoveObstacles(chunk, dist);
