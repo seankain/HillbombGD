@@ -89,7 +89,6 @@ public partial class Ball : RigidBody3D
 	private void UpdateCameraRigPosition(double delta)
 	{
 		//CameraRig.GlobalPosition = 
-
 		var updatedPos = CameraRig.GlobalPosition.Lerp(GlobalPosition, (float)delta * CameraChaseSpeed);
 		// TODO Get mouse position info 
 		//updatedPos = RotateAround(CameraRig.GlobalTransform, updatedPos, 2f, 2f);

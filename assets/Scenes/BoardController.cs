@@ -481,17 +481,8 @@ public partial class BoardController : CharacterBody3D
 		}
 		else
 		{
-			/*
-			if $FrontRay.is_colliding() or $RearRay.is_colliding():
-    # If one wheel is in air, move it down
-    var nf = $FrontRay.get_collision_normal() if $FrontRay.is_colliding() else Vector3.UP
-    var nr = $RearRay.get_collision_normal() if $RearRay.is_colliding() else Vector3.UP
-    var n = ((nr + nf) / 2.0).normalized()
-    var xform = align_with_y(global_transform, n)
-    global_transform = global_transform.interpolate_with(xform, 0.1)
-			*/
-			//If one wheel is in air move it down
-			var nf = Vector3.Up;
+			// Try to get board to line up with surface normal if touching
+			var nf = Vector3.Zero;
 			if (FrontTruckRay.IsColliding()) { nf = FrontTruckRay.GetCollisionNormal(); GD.Print($"Front truck {nf}"); }
 			var nr = Vector3.Up;
 			if (RearTruckRay.IsColliding()) { nr = RearTruckRay.GetCollisionNormal(); GD.Print($"Rear truck {nr}"); }
@@ -500,6 +491,7 @@ public partial class BoardController : CharacterBody3D
 			this.GlobalTransform = GlobalTransform.InterpolateWith(xform, 0.5f);
 			// dumb hack to keep board facing down the hill but will need to be changed when powerslides can happen
 			this.Rotation = new Vector3(this.Rotation.X, 0, this.Rotation.Z);
+			// This worked sort of okay
 			//this.Rotation = this.GetFloorNormal();
 			//this.RotationDegrees = new Vector3(this.GetFloorAngle() * 180 / Mathf.Pi, 0, 0);
 		}

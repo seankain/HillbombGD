@@ -1,7 +1,7 @@
-[gd_scene load_steps=21 format=3 uid="uid://dmiepdhvmkek4"]
+[gd_scene load_steps=28 format=3 uid="uid://dmiepdhvmkek4"]
 
 [ext_resource type="PackedScene" uid="uid://bu7vjbcy60yob" path="res://assets/models/Environment/Buildings/street_flat.glb" id="1_hcaeu"]
-[ext_resource type="Script" path="res://assets/Scripts/HillChunk.cs" id="1_j880e"]
+[ext_resource type="Script" uid="uid://dsaoiv6kvx57x" path="res://assets/Scripts/HillChunk.cs" id="1_j880e"]
 [ext_resource type="PackedScene" uid="uid://n67i62e7lw50" path="res://assets/models/Environment/Buildings/street_apron.glb" id="2_t63sy"]
 [ext_resource type="PackedScene" uid="uid://b1iu525jbe3e2" path="res://assets/models/Environment/Buildings/sidewalk_flat.glb" id="3_1xh5c"]
 [ext_resource type="PackedScene" uid="uid://i20r7dm08x65" path="res://assets/models/Environment/Buildings/sf_house1.glb" id="4_tybj5"]
@@ -13,9 +13,12 @@
 [ext_resource type="PackedScene" uid="uid://bxi2xf7fmjfte" path="res://assets/models/Environment/Buildings/Prefab/House1.tscn" id="9_qvyfe"]
 [ext_resource type="PackedScene" uid="uid://4516aixqo4ud" path="res://assets/models/Environment/Buildings/Prefab/House2.tscn" id="11_3ep40"]
 [ext_resource type="PackedScene" uid="uid://cone1uqdmqf4i" path="res://assets/models/Environment/Buildings/sf_house3.glb" id="12_ygw1s"]
-[ext_resource type="Script" path="res://assets/Scripts/ChunkTrigger.cs" id="13_0kkut"]
+[ext_resource type="Script" uid="uid://bbf44cu3gnh1n" path="res://assets/Scripts/ChunkTrigger.cs" id="13_0kkut"]
 [ext_resource type="PackedScene" uid="uid://df6i2vde8dtm3" path="res://assets/models/Environment/Buildings/Prefab/House3.tscn" id="14_owvnk"]
 [ext_resource type="PackedScene" uid="uid://byfyafae7qwo2" path="res://assets/models/Environment/Buildings/Prefab/House4.tscn" id="16_sgxsd"]
+[ext_resource type="PackedScene" uid="uid://souit7cm4svf" path="res://assets/models/Environment/Obstacles/Pipe.tscn" id="17_cdkm0"]
+[ext_resource type="PackedScene" uid="uid://cj31hqnhpjoue" path="res://assets/models/Environment/Obstacles/HalfPipe.tscn" id="17_exge2"]
+[ext_resource type="PackedScene" uid="uid://dkcjvyd0gtv4e" path="res://assets/models/Environment/Obstacles/Funbox.tscn" id="17_j3nh7"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -26,6 +29,34 @@ data = PackedVector3Array(-13.3826, -0.6065, -14.0363, 14.6873, -0.2002, -14.036
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gngta"]
 size = Vector3(50, 50, 3)
+
+[sub_resource type="Curve3D" id="Curve3D_sed2y"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -1.10161, -28.299, 122.419, 0, 0, 0, 0, 0, 0, 0, -29, 95, 0, 0, 0, 0, 0, 0, 0, 1, 0),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[sub_resource type="Curve3D" id="Curve3D_wnxse"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.003, 0.001, 0, 0, 0, 0, 0, 0, 0, 0, -28, 94, 0, 0, 0, 0, 0, 0, -1, -29, 122),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[sub_resource type="Curve3D" id="Curve3D_rtmc7"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -3.42633, -29.0101, 104.659, 0, 0, 0, 0, 0, 0, -3.65698, -29.0104, 107.45, 0, 0, 0, 0, 0, 0, -6, -29, 107.5, 0, 0, 0, 0, 0, 0, -9.21395, -29.0026, 107.526, 0, 0, 0, 0, 0, 0, -13, -29, 107.5, 0, 0, 0, 0, 0, 0, -50.6684, -28.416, 106.704),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0)
+}
+point_count = 6
+
+[sub_resource type="Curve3D" id="Curve3D_oxrhu"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 51.5166, -29.0153, 105.982, 0, 0, 0, 0, 0, 0, 14.1941, -29.0559, 106.814, 0, 0, 0, 0, 0, 0, 8.13613, -29.0349, 106.559, 0, 0, 0, 0, 0, 0, 4.76001, -29.0279, 106.483, 0, 0, 0, 0, 0, 0, 2.36439, -28.8948, 104.618),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
 
 [node name="HillChunk" type="Node3D" node_paths=PackedStringArray("ChunkStart", "ChunkEnd", "EntryTriggerArea", "ExitTriggerArea") groups=["Chunks"]]
 script = ExtResource("1_j880e")
@@ -259,3 +290,31 @@ transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -
 
 [node name="House13" parent="." instance=ExtResource("16_sgxsd")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -20.6, 78)
+
+[node name="Halfpipe" parent="." instance=ExtResource("17_exge2")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -10, -10.6, 50)
+visible = false
+
+[node name="Pipe" parent="." instance=ExtResource("17_cdkm0")]
+transform = Transform3D(1, 0, 0, 0, 0.956305, -0.584743, 0, 0.292372, 1.91261, 0, 80, 32)
+visible = false
+
+[node name="Funbox" parent="." instance=ExtResource("17_j3nh7")]
+transform = Transform3D(2, 0, 0, 0, 1.91261, -0.584743, 0, 0.584743, 1.91261, 0, -18, 59)
+visible = false
+
+[node name="OutgoingTrafficThruPath" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
+curve = SubResource("Curve3D_sed2y")
+
+[node name="Path3D" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
+curve = SubResource("Curve3D_wnxse")
+
+[node name="OncomingIntersectionRightPath" type="Path3D" parent="."]
+curve = SubResource("Curve3D_rtmc7")
+
+[node name="IntersectionLeftPath" type="Path3D" parent="."]
+curve = SubResource("Curve3D_oxrhu")
+
+[editable path="Street/street_apron"]

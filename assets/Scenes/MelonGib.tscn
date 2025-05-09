@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://bkw6mnq4bd64n"]
 
-[ext_resource type="Script" path="res://assets/Scripts/Ball.cs" id="1_twoq0"]
+[ext_resource type="Script" uid="uid://bllk7q51wla3" path="res://assets/Scripts/Ball.cs" id="1_twoq0"]
 [ext_resource type="PackedScene" uid="uid://5ujof043taen" path="res://assets/models/watermelon.glb" id="2_ewhou"]
 [ext_resource type="PackedScene" uid="uid://dx4cksu3w8kcn" path="res://assets/models/watermelon_gib_low_vert.glb" id="3_2ufso"]
 
