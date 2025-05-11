@@ -1,23 +1,33 @@
-[gd_scene load_steps=4 format=3 uid="uid://ba2i4jeo5ivcm"]
+[gd_scene load_steps=6 format=3 uid="uid://ba2i4jeo5ivcm"]
 
-[ext_resource type="PackedScene" uid="uid://bq0560ohgtur" path="res://assets/Scenes/watermelon_gib_low_vert.tscn" id="1_1jkqm"]
+[ext_resource type="PackedScene" uid="uid://bkw6mnq4bd64n" path="res://assets/Scenes/MelonGib.tscn" id="1_fead2"]
+[ext_resource type="Script" uid="uid://cw6uyk8pfyi56" path="res://assets/Scenes/Debug/GibTest.cs" id="1_hj1j2"]
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_henuf"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hj1j2"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_4puo2"]
+material = SubResource("StandardMaterial3D_hj1j2")
 
 [sub_resource type="Environment" id="Environment_ul5e3"]
 
-[node name="GibTest" type="Node3D"]
+[node name="GibTest" type="Node3D" node_paths=PackedStringArray("GibSceneInstance", "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", "LinearVelocityX", "LinearVelocityY", "LinearVelocityZ", "ForceMultiplier")]
+script = ExtResource("1_hj1j2")
+GibSceneInstance = NodePath("Node3D")
+AngularVelocityX = NodePath("Control/AngularVelocityX")
+AngularVelocityY = NodePath("Control/AngularVelocityY")
+AngularVelocityZ = NodePath("Control/AngularVelocityZ")
+LinearVelocityX = NodePath("Control/LinearVelocityX")
+LinearVelocityY = NodePath("Control/LinearVelocityY")
+LinearVelocityZ = NodePath("Control/AngularVelocityZ")
+ForceMultiplier = NodePath("Control/ForceMultiplier")
 
 [node name="CSGMesh3D" type="CSGMesh3D" parent="."]
 transform = Transform3D(4, 0, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0)
 use_collision = true
-mesh = SubResource("PlaneMesh_henuf")
+mesh = SubResource("BoxMesh_4puo2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.003, 0.645, 1.306)
-
-[node name="watermelon_gib_low_vert" parent="." instance=ExtResource("1_1jkqm")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.003, 1.61588, 3.09527)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_ul5e3")
@@ -25,3 +35,76 @@ environment = SubResource("Environment_ul5e3")
 [node name="SpotLight3D" type="SpotLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 3.28304, 0)
 light_energy = 10.0
+
+[node name="Node3D" parent="." instance=ExtResource("1_fead2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.202787, 1.80482, -0.128727)
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LinearVelocityX" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_right = 86.5625
+offset_bottom = 31.0
+
+[node name="LinearVelocityY" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 187.0
+offset_right = 273.563
+offset_bottom = 31.0
+
+[node name="LinearVelocityZ" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 90.0
+offset_right = 176.563
+offset_bottom = 31.0
+
+[node name="AngularVelocityX" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 43.0
+offset_right = 87.5625
+offset_bottom = 74.0
+
+[node name="AngularVelocityY" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 188.0
+offset_top = 43.0
+offset_right = 274.563
+offset_bottom = 74.0
+
+[node name="AngularVelocityZ" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 91.0
+offset_top = 43.0
+offset_right = 177.563
+offset_bottom = 74.0
+
+[node name="ForceMultiplier" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 89.0
+offset_right = 87.5625
+offset_bottom = 120.0
+
+[node name="ResetButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 88.0
+offset_right = 163.0
+offset_bottom = 119.0
+text = "Reset"
+
+[node name="GibButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 88.0
+offset_right = 228.0
+offset_bottom = 119.0
+text = "Gib"
+
+[connection signal="button_down" from="Control/ResetButton" to="." method="ResetButtonClicked"]
+[connection signal="button_down" from="Control/GibButton" to="." method="GibButtonClicked"]

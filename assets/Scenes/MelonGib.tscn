@@ -1,64 +1,27 @@
-[gd_scene load_steps=6 format=3 uid="uid://bkw6mnq4bd64n"]
+[gd_scene load_steps=3 format=3 uid="uid://bkw6mnq4bd64n"]
 
-[ext_resource type="Script" uid="uid://bllk7q51wla3" path="res://assets/Scripts/Ball.cs" id="1_twoq0"]
-[ext_resource type="PackedScene" uid="uid://5ujof043taen" path="res://assets/models/watermelon.glb" id="2_ewhou"]
-[ext_resource type="PackedScene" uid="uid://dx4cksu3w8kcn" path="res://assets/models/watermelon_gib_low_vert.glb" id="3_2ufso"]
+[ext_resource type="Script" uid="uid://dq3s4r5b7q1fe" path="res://assets/Scenes/Gibsplosion.cs" id="1_0odtl"]
+[ext_resource type="PackedScene" uid="uid://bcsor278k521h" path="res://assets/Scenes/melon_gib_slice2.tscn" id="2_0odtl"]
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_wy8vl"]
-friction = 4.0
-rough = true
-bounce = 0.5
+[node name="GibMelon" type="Node3D" node_paths=PackedStringArray("GibComponents")]
+script = ExtResource("1_0odtl")
+GibComponents = [NodePath("MelonGibSlice"), NodePath("MelonGibSlice2"), NodePath("MelonGibSlice3"), NodePath("MelonGibSlice4"), NodePath("MelonGibSlice5"), NodePath("MelonGibSlice6")]
+GibsplosionForce = 5.0
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wmag2"]
-radius = 1.06172
-height = 2.40459
+[node name="MelonGibSlice" parent="." instance=ExtResource("2_0odtl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 
-[node name="Watermelon" type="RigidBody3D" node_paths=PackedStringArray("CameraRig", "CameraXPivot", "FloorCheck")]
-mass = 100.0
-physics_material_override = SubResource("PhysicsMaterial_wy8vl")
-angular_damp = 1.0
-script = ExtResource("1_twoq0")
-CameraRig = NodePath("CameraRig")
-CameraXPivot = NodePath("CameraRig/CameraXPivot")
-FloorCheck = NodePath("FloorCheck")
+[node name="MelonGibSlice2" parent="." instance=ExtResource("2_0odtl")]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 0, 0)
 
-[node name="watermelon" parent="." instance=ExtResource("2_ewhou")]
-visible = false
+[node name="MelonGibSlice3" parent="." instance=ExtResource("2_0odtl")]
+transform = Transform3D(1, 0, 0, 0, -0.422618, 0.906308, 0, -0.906308, -0.422618, 0, 0.1, 0.1)
 
-[node name="watermelon_gib_low_vert" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.0137051, 0.043672)
+[node name="MelonGibSlice4" parent="." instance=ExtResource("2_0odtl")]
+transform = Transform3D(1, 0, 0, 0, -0.996195, 0.0871556, 0, -0.0871556, -0.996195, 0, 0, 0)
 
-[node name="watermelon_gib_low_vert2" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, -0.737242, 0.675629, 0, -0.675629, -0.737242, 0, 0.0395333, -0.000276983)
+[node name="MelonGibSlice5" parent="." instance=ExtResource("2_0odtl")]
+transform = Transform3D(1, 0, 0, 0, -0.642788, -0.766045, 0, 0.766045, -0.642788, 0, 0, -0.2)
 
-[node name="watermelon_gib_low_vert3" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, -0.997441, -0.0714975, 0, 0.0714975, -0.997441, 0, 0.0606517, -0.0208244)
-
-[node name="watermelon_gib_low_vert4" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, -0.643429, -0.765506, 0, 0.765506, -0.643429, 0, -0.0132669, -0.0673358)
-
-[node name="watermelon_gib_low_vert5" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, 0.16959, -0.985515, 0, 0.985515, 0.16959, 0, -0.0909018, -0.0965681)
-
-[node name="watermelon_gib_low_vert6" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, 0.846388, -0.532566, 0, 0.532566, 0.846388, 0, -0.114488, -0.046854)
-
-[node name="watermelon_gib_low_vert7" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, 0.990617, 0.136667, 0, -0.136667, 0.990617, 0, -0.0959946, 0.0288587)
-
-[node name="watermelon_gib_low_vert8" parent="." instance=ExtResource("3_2ufso")]
-transform = Transform3D(1, 0, 0, 0, 0.590437, 0.807084, 0, -0.807084, 0.590437, 0, -0.0399036, 0.0558836)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
-shape = SubResource("CapsuleShape3D_wmag2")
-
-[node name="CameraRig" type="Marker3D" parent="."]
-
-[node name="CameraXPivot" type="Marker3D" parent="CameraRig"]
-
-[node name="Camera3D" type="Camera3D" parent="CameraRig/CameraXPivot"]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.758, -4.197)
-
-[node name="FloorCheck" type="RayCast3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0606266, 0)
+[node name="MelonGibSlice6" parent="." instance=ExtResource("2_0odtl")]
+transform = Transform3D(1, 0, 0, 0, 0.34202, -0.939693, 0, 0.939693, 0.34202, 0, 0, 0)

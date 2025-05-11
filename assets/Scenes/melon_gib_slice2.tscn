@@ -1,27 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://r3d2ma5an1r1"]
+[gd_scene load_steps=3 format=3 uid="uid://bcsor278k521h"]
 
-[ext_resource type="PackedScene" uid="uid://dx4cksu3w8kcn" path="res://assets/models/watermelon_gib_low_vert.glb" id="1_pf646"]
+[ext_resource type="ArrayMesh" uid="uid://22v6yyvd0a5x" path="res://assets/models/melon_slice_gib.res" id="1_3ec0e"]
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_wy8vl"]
-friction = 4.0
-rough = true
-bounce = 0.5
-
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_6nqny"]
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_hxks8"]
 points = PackedVector3Array(-0.176795, -0.92967, 0.0264758, 1.01049, 0.109102, -0.0561068, 0.599824, -0.5538, 0.606805, -1.01039, 0.109102, -0.0561068, -0.504773, -0.585432, 0.638409, 0.535906, -0.784798, -0.0652401, -0.741411, -0.605491, -0.063874, 0.144237, -0.831423, 0.494305, 0.903211, -0.367567, -0.0694617, -0.883985, -0.364639, 0.385731, -1.01039, 0.109102, -0.0877881, -0.491821, -0.774817, 0.321362, 0.915735, -0.333008, 0.354204, 0.147896, -0.930447, -0.0627576, 0.556345, -0.749737, 0.263052, -0.172345, -0.715476, 0.666728, -0.116047, -0.892394, 0.350417, 0.315762, -0.648695, 0.701617, -0.938455, -0.276345, -0.0715437, -0.355728, -0.872427, -0.0637843, 0.319763, -0.863779, 0.292397, 0.772077, -0.576035, 0.143629, -0.618014, -0.721951, 0.17453, 0.967445, -0.155637, -0.0709745, -1.01039, -0.112005, 0.133285, 0.0878638, -0.926216, 0.233717, -0.789231, -0.459114, 0.480543, 1.01049, -0.0803733, 0.133285, 0.374203, -0.744191, 0.522729, -0.260617, -0.833294, 0.437242, -0.292483, -0.895767, 0.175317, 0.757879, -0.459114, 0.51207)
 
-[node name="Watermelon" type="RigidBody3D"]
-mass = 100.0
-physics_material_override = SubResource("PhysicsMaterial_wy8vl")
-angular_damp = 1.0
-
-[node name="watermelon_gib_low_vert" parent="." instance=ExtResource("1_pf646")]
-transform = Transform3D(1, 0, 0, 0, -0.588293, 0.808648, 0, -0.808648, -0.588293, 0, 0.0417572, 0.0335038)
-
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="watermelon_gib_low_vert/WatermelonSlice" index="0"]
-shape = SubResource("ConvexPolygonShape3D_6nqny")
+[node name="MelonGibSlice" type="Node3D"]
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -0.588293, 0.808648, 0, -0.808648, -0.588293, 0, 0.0417572, 0.0335038)
 
-[editable path="watermelon_gib_low_vert"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
+mesh = ExtResource("1_3ec0e")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+shape = SubResource("ConvexPolygonShape3D_hxks8")
