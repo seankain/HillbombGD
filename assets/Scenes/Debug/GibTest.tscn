@@ -12,7 +12,7 @@ material = SubResource("StandardMaterial3D_hj1j2")
 
 [node name="GibTest" type="Node3D" node_paths=PackedStringArray("GibSceneInstance", "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", "LinearVelocityX", "LinearVelocityY", "LinearVelocityZ", "ForceMultiplier")]
 script = ExtResource("1_hj1j2")
-GibSceneInstance = NodePath("Node3D")
+GibSceneInstance = NodePath("GibMelon")
 AngularVelocityX = NodePath("Control/AngularVelocityX")
 AngularVelocityY = NodePath("Control/AngularVelocityY")
 AngularVelocityZ = NodePath("Control/AngularVelocityZ")
@@ -36,8 +36,8 @@ environment = SubResource("Environment_ul5e3")
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 3.28304, 0)
 light_energy = 10.0
 
-[node name="Node3D" parent="." instance=ExtResource("1_fead2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.202787, 1.80482, -0.128727)
+[node name="GibMelon" parent="." instance=ExtResource("1_fead2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.95503, 0)
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3

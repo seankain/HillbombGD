@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bkw6mnq4bd64n"]
+[gd_scene load_steps=4 format=3 uid="uid://bkw6mnq4bd64n"]
 
 [ext_resource type="Script" uid="uid://dq3s4r5b7q1fe" path="res://assets/Scenes/Gibsplosion.cs" id="1_0odtl"]
 [ext_resource type="PackedScene" uid="uid://bcsor278k521h" path="res://assets/Scenes/melon_gib_slice2.tscn" id="2_0odtl"]
+[ext_resource type="Script" uid="uid://i5uwnwwsl7wm" path="res://assets/Scenes/Gib.cs" id="3_agxjg"]
 
 [node name="GibMelon" type="Node3D" node_paths=PackedStringArray("GibComponents")]
 script = ExtResource("1_0odtl")
@@ -10,18 +11,24 @@ GibsplosionForce = 5.0
 
 [node name="MelonGibSlice" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+script = ExtResource("3_agxjg")
 
 [node name="MelonGibSlice2" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 0, 0)
+script = ExtResource("3_agxjg")
 
 [node name="MelonGibSlice3" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, -0.422618, 0.906308, 0, -0.906308, -0.422618, 0, 0.1, 0.1)
+script = ExtResource("3_agxjg")
 
 [node name="MelonGibSlice4" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, -0.996195, 0.0871556, 0, -0.0871556, -0.996195, 0, 0, 0)
+script = ExtResource("3_agxjg")
 
 [node name="MelonGibSlice5" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, -0.642788, -0.766045, 0, 0.766045, -0.642788, 0, 0, -0.2)
+script = ExtResource("3_agxjg")
 
 [node name="MelonGibSlice6" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, 0.34202, -0.939693, 0, 0.939693, 0.34202, 0, 0, 0)
+script = ExtResource("3_agxjg")

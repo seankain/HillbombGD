@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 public partial class Gibsplosion : Node3D
 {
     [Export]
-    public Node3D[] GibComponents;
+    public Gib[] GibComponents;
     [Export]
     public float GibsplosionForce = 50f;
 
@@ -39,10 +39,10 @@ public partial class Gibsplosion : Node3D
     {
         foreach (var c in GibComponents)
         {
-            var rb = c.GetChildByType<RigidBody3D>();
-            rb.ApplyImpulse((this.Position + c.Position) * forceMultiplier, this.Position);
-            rb.AngularVelocity = angularVelocity;
-            rb.LinearVelocity = velocity;
+            //var rb = c.GetChildByType<RigidBody3D>();
+            c.ApplyImpulse((this.Position + c.Position) * forceMultiplier, this.Position);
+            c.AngularVelocity = angularVelocity;
+            c.LinearVelocity = velocity;
         }
     }
 
@@ -50,17 +50,18 @@ public partial class Gibsplosion : Node3D
     {
         for (var i = 0; i < GibComponents.Length; i++)
         {
-            GD.Print(GibComponents[i].GlobalTransform);
-            var rb = GibComponents[i].GetChildByType<RigidBody3D>();
-            rb.LinearVelocity = Vector3.Zero;
-            rb.AngularVelocity = Vector3.Zero;
-            rb.FreezeMode = RigidBody3D.FreezeModeEnum.Kinematic;
-            rb.LockRotation = true;
-            rb.Freeze = true;
-            GibComponents[i].GlobalTransform = new Transform3D(ComponentStartLocations[i].Basis, ComponentStartLocations[i].Origin);
-            GD.Print(GibComponents[i].GlobalTransform);
-            rb.LockRotation = false;
-            rb.Freeze = false;
+            GibComponents[i].Reset();
+            // GD.Print(GibComponents[i].GlobalTransform);
+            // var rb = GibComponents[i].GetChildByType<RigidBody3D>();
+            // rb.LinearVelocity = Vector3.Zero;
+            // rb.AngularVelocity = Vector3.Zero;
+            // rb.FreezeMode = RigidBody3D.FreezeModeEnum.Kinematic;
+            // rb.LockRotation = true;
+            // rb.Freeze = true;
+            // GibComponents[i].GlobalTransform = new Transform3D(ComponentStartLocations[i].Basis, ComponentStartLocations[i].Origin);
+            // GD.Print(GibComponents[i].GlobalTransform);
+            // rb.LockRotation = false;
+            // rb.Freeze = false;
         }
     }
 
