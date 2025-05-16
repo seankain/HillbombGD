@@ -1,8 +1,37 @@
-[gd_scene load_steps=4 format=3 uid="uid://bkw6mnq4bd64n"]
+[gd_scene load_steps=9 format=3 uid="uid://bkw6mnq4bd64n"]
 
 [ext_resource type="Script" uid="uid://dq3s4r5b7q1fe" path="res://assets/Scenes/Gibsplosion.cs" id="1_0odtl"]
 [ext_resource type="PackedScene" uid="uid://bcsor278k521h" path="res://assets/Scenes/melon_gib_slice2.tscn" id="2_0odtl"]
 [ext_resource type="Script" uid="uid://i5uwnwwsl7wm" path="res://assets/Scenes/Gib.cs" id="3_agxjg"]
+
+[sub_resource type="Curve" id="Curve_agxjg"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.982507, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_5t0be"]
+curve = SubResource("Curve_agxjg")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0itig"]
+emission_shape = 1
+emission_sphere_radius = 2.0
+direction = Vector3(0, 1, 0)
+initial_velocity_min = 7.87
+initial_velocity_max = 7.87
+scale_curve = SubResource("CurveTexture_5t0be")
+color = Color(0.99062, 0.273107, 1, 1)
+turbulence_noise_strength = 6.31
+turbulence_noise_scale = 9.2
+turbulence_noise_speed_random = 0.8
+turbulence_influence_min = 0.268
+turbulence_influence_max = 0.268
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kdgra"]
+albedo_color = Color(1, 0.474806, 0.999798, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_a1unc"]
+material = SubResource("StandardMaterial3D_kdgra")
+radius = 0.1
+height = 0.4
 
 [node name="GibMelon" type="Node3D" node_paths=PackedStringArray("GibComponents")]
 script = ExtResource("1_0odtl")
@@ -32,3 +61,12 @@ script = ExtResource("3_agxjg")
 [node name="MelonGibSlice6" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, 0.34202, -0.939693, 0, 0.939693, 0.34202, 0, 0, 0)
 script = ExtResource("3_agxjg")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 50
+lifetime = 0.4
+explosiveness = 0.8
+randomness = 0.37
+process_material = SubResource("ParticleProcessMaterial_0itig")
+draw_pass_1 = SubResource("CapsuleMesh_a1unc")
