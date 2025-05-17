@@ -12,6 +12,9 @@ public partial class Gibsplosion : Node3D
     [Export]
     public float GibsplosionForce = 50f;
 
+    [Export]
+    public GpuParticles3D ParticleEmitter;
+
     private Transform3D[] ComponentStartLocations;
 
     private bool Ungibbing = false;
@@ -43,6 +46,12 @@ public partial class Gibsplosion : Node3D
             c.ApplyImpulse((this.Position + c.Position) * forceMultiplier, this.Position);
             c.AngularVelocity = angularVelocity;
             c.LinearVelocity = velocity;
+        }
+        if (ParticleEmitter != null)
+        {
+            ParticleEmitter.Emitting = true;
+            ParticleEmitter.OneShot = true;
+
         }
     }
 

@@ -33,10 +33,11 @@ material = SubResource("StandardMaterial3D_kdgra")
 radius = 0.1
 height = 0.4
 
-[node name="GibMelon" type="Node3D" node_paths=PackedStringArray("GibComponents")]
+[node name="GibMelon" type="Node3D" node_paths=PackedStringArray("GibComponents", "ParticleEmitter")]
 script = ExtResource("1_0odtl")
 GibComponents = [NodePath("MelonGibSlice"), NodePath("MelonGibSlice2"), NodePath("MelonGibSlice3"), NodePath("MelonGibSlice4"), NodePath("MelonGibSlice5"), NodePath("MelonGibSlice6")]
 GibsplosionForce = 5.0
+ParticleEmitter = NodePath("GPUParticles3D")
 
 [node name="MelonGibSlice" parent="." instance=ExtResource("2_0odtl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
