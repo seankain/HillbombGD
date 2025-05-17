@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://yyl7n8td374s"]
+
+[ext_resource type="PackedScene" uid="uid://bckd3gnajy2gb" path="res://assets/models/shitbox.glb" id="1_gypw5"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gypw5"]
+size = Vector3(1.2, 1.9, 2.1)
+
+[node name="RigidBody3D" type="RigidBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(-6.05751, 0, 0, 0, 1, 0, 0, 0, 2.76497, 0.942849, 0.689956, -3.13812)
+shape = SubResource("BoxShape3D_gypw5")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="."]
+transform = Transform3D(-6.05751, 0, 0, 0, 1, 0, 0, 0, 2.76497, 0.337097, 2.68996, -3.13812)
+shape = SubResource("BoxShape3D_gypw5")
+
+[node name="Car" type="Node3D" parent="."]
+
+[node name="shitbox" parent="Car" instance=ExtResource("1_gypw5")]
+
+[editable path="Car/shitbox"]

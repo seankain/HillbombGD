@@ -26,9 +26,17 @@ public partial class Ball : RigidBody3D
 	[Export]
 	public float MouseSensitivity = 0.1f;
 
+	[Export]
+	public float DeathForce = 100f;
+
+	[Export]
+	public PackedScene GibScene;
+
 	public PlayerRespawnedEventHandler PlayerRespawned;
 
 	private bool respawnPressed = false;
+
+	private Vector3 prevVelocity = Vector3.Zero;
 
 
 	// Called when the node enters the scene tree for the first time.
@@ -36,7 +44,24 @@ public partial class Ball : RigidBody3D
 	{
 		CameraRig.TopLevel = true;
 		FloorCheck.TopLevel = true;
+		BodyEntered += HandleCollision;
 		Input.MouseMode = Input.MouseModeEnum.Captured;
+
+	}
+
+	private void HandleCollision(Node body)
+	{
+		// Get the acceleration (change in velocity per second)
+
+		Vector3 acceleration = (LinearVelocity - prevVelocity) / (float)GetPhysicsProcessDeltaTime();
+		var force = Mass * acceleration;
+		//GD.Print(force);
+		if (force.Length() >= DeathForce)
+		{
+			GD.Print(force.Length());
+			//GD.Print("You died.");
+			Die();
+		}
 
 	}
 
@@ -131,6 +156,7 @@ public partial class Ball : RigidBody3D
 		{
 			ApplyImpulse(Vector3.Zero, Vector3.Up * JumpForce);
 		}
+		prevVelocity = LinearVelocity;
 	}
 
 	public override void _IntegrateForces(PhysicsDirectBodyState3D state)
@@ -140,6 +166,17 @@ public partial class Ball : RigidBody3D
 		{
 			Respawn();
 			respawnPressed = false;
+		}
+
+	}
+
+	private void Die()
+	{
+		var gibScene = GibScene.Instantiate();
+		AddChild(gibScene);
+		if (gibScene is Gibsplosion)
+		{
+			((Gibsplosion)gibScene).Gibsplode(1, LinearVelocity, AngularVelocity);
 		}
 
 	}
