@@ -16,7 +16,7 @@
 [ext_resource type="Script" uid="uid://bbf44cu3gnh1n" path="res://assets/Scripts/ChunkTrigger.cs" id="13_0kkut"]
 [ext_resource type="PackedScene" uid="uid://df6i2vde8dtm3" path="res://assets/models/Environment/Buildings/Prefab/House3.tscn" id="14_owvnk"]
 [ext_resource type="PackedScene" uid="uid://byfyafae7qwo2" path="res://assets/models/Environment/Buildings/Prefab/House4.tscn" id="16_sgxsd"]
-[ext_resource type="PackedScene" uid="uid://yyl7n8td374s" path="res://assets/Scenes/Car.tscn" id="17_vy1ph"]
+[ext_resource type="PackedScene" uid="uid://dddnvhxns8qei" path="res://assets/Scenes/Car.tscn" id="17_vy1ph"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -97,6 +97,9 @@ visible = false
 [node name="street_flat5" parent="Street" instance=ExtResource("1_hcaeu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 90)
 visible = false
+
+[node name="Car" parent="Street" instance=ExtResource("17_vy1ph")]
+transform = Transform3D(0.65, 0, 0, 0, 0.621598, 0.190042, 0, -0.190042, 0.621598, 6, 3.27693, 58.6026)
 
 [node name="Sidewalk" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.956305, -0.292372, 0, 0.292372, 0.956305, -11, 0, 0)
@@ -302,9 +305,5 @@ curve = SubResource("Curve3D_rtmc7")
 
 [node name="IntersectionLeftPath" type="Path3D" parent="."]
 curve = SubResource("Curve3D_oxrhu")
-
-[node name="RigidBody3D" parent="." instance=ExtResource("17_vy1ph")]
-transform = Transform3D(-2.18557e-08, 0, 0.5, 0, 0.5, 0, -0.5, 0, -2.18557e-08, 5, -13, 53)
-mass = 1000.0
 
 [editable path="Street/street_apron"]

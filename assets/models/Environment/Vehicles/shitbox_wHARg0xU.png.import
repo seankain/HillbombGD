@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dm7eqkd8lyjfs"
-path.s3tc="res://.godot/imported/shitbox_wHARg0xU.png-f3e2268c8047b4de804788c3dd5d9935.s3tc.ctex"
+uid="uid://p53hdoon28t"
+path.s3tc="res://.godot/imported/shitbox_wHARg0xU.png-d2e8d75ccb4d2ed41b9532cb900d0fcf.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -14,8 +14,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://assets/models/shitbox_wHARg0xU.png"
-dest_files=["res://.godot/imported/shitbox_wHARg0xU.png-f3e2268c8047b4de804788c3dd5d9935.s3tc.ctex"]
+source_file="res://assets/models/Environment/Vehicles/shitbox_wHARg0xU.png"
+dest_files=["res://.godot/imported/shitbox_wHARg0xU.png-d2e8d75ccb4d2ed41b9532cb900d0fcf.s3tc.ctex"]
 
 [params]
 

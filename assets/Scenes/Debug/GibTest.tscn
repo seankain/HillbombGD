@@ -10,7 +10,7 @@ material = SubResource("StandardMaterial3D_hj1j2")
 
 [sub_resource type="Environment" id="Environment_ul5e3"]
 
-[node name="GibTest" type="Node3D" node_paths=PackedStringArray("GibSceneInstance", "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", "LinearVelocityX", "LinearVelocityY", "LinearVelocityZ", "ForceMultiplier")]
+[node name="GibTest" type="Node3D" node_paths=PackedStringArray("GibSceneInstance", "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", "LinearVelocityX", "LinearVelocityY", "LinearVelocityZ", "PositionX", "PositionY", "PositionZ", "ForceMultiplier")]
 script = ExtResource("1_hj1j2")
 GibSceneInstance = NodePath("GibMelon")
 AngularVelocityX = NodePath("Control/AngularVelocityX")
@@ -19,10 +19,13 @@ AngularVelocityZ = NodePath("Control/AngularVelocityZ")
 LinearVelocityX = NodePath("Control/LinearVelocityX")
 LinearVelocityY = NodePath("Control/LinearVelocityY")
 LinearVelocityZ = NodePath("Control/AngularVelocityZ")
+PositionX = NodePath("Control/PositionX")
+PositionY = NodePath("Control/PositionY")
+PositionZ = NodePath("Control/PositionZ")
 ForceMultiplier = NodePath("Control/ForceMultiplier")
 
 [node name="CSGMesh3D" type="CSGMesh3D" parent="."]
-transform = Transform3D(4, 0, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0)
+transform = Transform3D(311.075, 0, 0, 0, 1, 0, 0, 0, 435.58, 0, 0, 0)
 use_collision = true
 mesh = SubResource("BoxMesh_4puo2")
 
@@ -37,7 +40,7 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 3.2
 light_energy = 10.0
 
 [node name="GibMelon" parent="." instance=ExtResource("1_fead2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.95503, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.93124, 0)
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
@@ -82,6 +85,32 @@ offset_left = 91.0
 offset_top = 43.0
 offset_right = 177.563
 offset_bottom = 74.0
+
+[node name="PositionX" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 317.0
+offset_top = 1.0
+offset_right = 403.563
+offset_bottom = 32.0
+min_value = -20.0
+max_value = 20.0
+
+[node name="PositionY" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 413.0
+offset_right = 499.563
+offset_bottom = 31.0
+min_value = -20.0
+max_value = 20.0
+
+[node name="PositionZ" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 510.0
+offset_top = -1.0
+offset_right = 596.563
+offset_bottom = 30.0
+min_value = -20.0
+max_value = 20.0
 
 [node name="ForceMultiplier" type="SpinBox" parent="Control"]
 layout_mode = 0

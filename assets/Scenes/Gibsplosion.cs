@@ -29,6 +29,27 @@ public partial class Gibsplosion : Node3D
 
     }
 
+    public void Disable()
+    {
+        foreach (var g in GibComponents)
+        {
+            g.Disable();
+        }
+        this.ProcessMode = ProcessModeEnum.Disabled;
+        this.SetPhysicsProcess(false);
+    }
+
+    public void Enable()
+    {
+        this.ProcessMode = ProcessModeEnum.Always;
+        this.SetPhysicsProcess(true);
+        foreach (var g in GibComponents)
+        {
+            g.Enable();
+        }
+
+    }
+
 
     public void Gibsplode()
     {
@@ -42,7 +63,6 @@ public partial class Gibsplosion : Node3D
     {
         foreach (var c in GibComponents)
         {
-            //var rb = c.GetChildByType<RigidBody3D>();
             c.ApplyImpulse((this.Position + c.Position) * forceMultiplier, this.Position);
             c.AngularVelocity = angularVelocity;
             c.LinearVelocity = velocity;
@@ -51,8 +71,13 @@ public partial class Gibsplosion : Node3D
         {
             ParticleEmitter.Emitting = true;
             ParticleEmitter.OneShot = true;
-
         }
+    }
+
+    public void Teleport(Vector3 position)
+    {
+        this.GlobalPosition = position;
+        Ungib();
     }
 
     public void Ungib()
@@ -60,17 +85,6 @@ public partial class Gibsplosion : Node3D
         for (var i = 0; i < GibComponents.Length; i++)
         {
             GibComponents[i].Reset();
-            // GD.Print(GibComponents[i].GlobalTransform);
-            // var rb = GibComponents[i].GetChildByType<RigidBody3D>();
-            // rb.LinearVelocity = Vector3.Zero;
-            // rb.AngularVelocity = Vector3.Zero;
-            // rb.FreezeMode = RigidBody3D.FreezeModeEnum.Kinematic;
-            // rb.LockRotation = true;
-            // rb.Freeze = true;
-            // GibComponents[i].GlobalTransform = new Transform3D(ComponentStartLocations[i].Basis, ComponentStartLocations[i].Origin);
-            // GD.Print(GibComponents[i].GlobalTransform);
-            // rb.LockRotation = false;
-            // rb.Freeze = false;
         }
     }
 

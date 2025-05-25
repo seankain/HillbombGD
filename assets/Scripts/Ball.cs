@@ -32,9 +32,13 @@ public partial class Ball : RigidBody3D
 	[Export]
 	public PackedScene GibScene;
 
+	private Gibsplosion gibber;
+
 	public PlayerRespawnedEventHandler PlayerRespawned;
 
 	private bool respawnPressed = false;
+
+	private bool isDead = false;
 
 	private Vector3 prevVelocity = Vector3.Zero;
 
@@ -46,13 +50,16 @@ public partial class Ball : RigidBody3D
 		FloorCheck.TopLevel = true;
 		BodyEntered += HandleCollision;
 		Input.MouseMode = Input.MouseModeEnum.Captured;
-
+		var gibScene = GibScene.Instantiate();
+		//GetTree().Root.AddChild(gibScene);
+		GetNode("../HiddenPlace").AddChild(gibScene);
+		gibber = gibScene as Gibsplosion;
 	}
 
 	private void HandleCollision(Node body)
 	{
 		// Get the acceleration (change in velocity per second)
-
+		if (isDead) { return; }
 		Vector3 acceleration = (LinearVelocity - prevVelocity) / (float)GetPhysicsProcessDeltaTime();
 		var force = Mass * acceleration;
 		//GD.Print(force);
@@ -123,9 +130,9 @@ public partial class Ball : RigidBody3D
 
 	public override void _PhysicsProcess(double delta)
 	{
-
 		//CameraRig.GlobalPosition = CameraRig.GlobalPosition.Lerp(GlobalPosition, (float)delta);
 		UpdateCameraRigPosition(delta);
+		if (isDead) { return; }
 		var upfct = FloorCheck.GlobalTransform;
 		upfct.Origin = new Vector3(
 			this.Transform.Origin.X,
@@ -172,21 +179,25 @@ public partial class Ball : RigidBody3D
 
 	private void Die()
 	{
-		var gibScene = GibScene.Instantiate();
-		AddChild(gibScene);
-		if (gibScene is Gibsplosion)
-		{
-			((Gibsplosion)gibScene).Gibsplode(1, LinearVelocity, AngularVelocity);
-		}
-
+		//var gibScene = GibScene.Instantiate();
+		//AddChild(gibScene);
+		isDead = true;
+		this.GetChildByType<MeshInstance3D>().Visible = false;
+		this.SetPhysicsProcess(false);
+		gibber.Enable();
+		gibber.Teleport(this.GlobalPosition);
+		gibber.Gibsplode(1, LinearVelocity, AngularVelocity);
 	}
 
 	private void Respawn()
 	{
+		isDead = false;
 		var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
 		this.GlobalTransform = new Transform3D(respawn.GlobalTransform.Basis, respawn.GlobalPosition);
 		this.PlayerRespawned?.Invoke(this, new PlayerRespawnArgs());
 		this.LinearVelocity = Vector3.Zero;
 		this.AngularVelocity = Vector3.Zero;
+		this.GetChildByType<MeshInstance3D>().Visible = true;
+		this.SetPhysicsProcess(true);
 	}
 }

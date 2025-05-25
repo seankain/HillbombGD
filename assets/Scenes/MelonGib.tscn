@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bkw6mnq4bd64n"]
+[gd_scene load_steps=11 format=3 uid="uid://bkw6mnq4bd64n"]
 
 [ext_resource type="Script" uid="uid://dq3s4r5b7q1fe" path="res://assets/Scenes/Gibsplosion.cs" id="1_0odtl"]
 [ext_resource type="PackedScene" uid="uid://bcsor278k521h" path="res://assets/Scenes/melon_gib_slice2.tscn" id="2_0odtl"]
@@ -32,6 +32,13 @@ albedo_color = Color(1, 0.474806, 0.999798, 1)
 material = SubResource("StandardMaterial3D_kdgra")
 radius = 0.1
 height = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_agxjg"]
+transparency = 1
+albedo_color = Color(0, 1, 0, 0.458824)
+
+[sub_resource type="SphereMesh" id="SphereMesh_5t0be"]
+material = SubResource("StandardMaterial3D_agxjg")
 
 [node name="GibMelon" type="Node3D" node_paths=PackedStringArray("GibComponents", "ParticleEmitter")]
 script = ExtResource("1_0odtl")
@@ -71,3 +78,7 @@ explosiveness = 0.8
 randomness = 0.37
 process_material = SubResource("ParticleProcessMaterial_0itig")
 draw_pass_1 = SubResource("CapsuleMesh_a1unc")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("SphereMesh_5t0be")

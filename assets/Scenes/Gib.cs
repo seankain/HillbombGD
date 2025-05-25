@@ -10,12 +10,25 @@ public partial class Gib : RigidBody3D
 
     public override void _Ready()
     {
-        this.ComponentStartTransform = new Transform3D(GlobalTransform.Basis, GlobalTransform.Origin);
+        this.ComponentStartTransform = new Transform3D(this.Transform.Basis, GetParentNode3D().Transform.Origin);
     }
 
     public void Reset()
     {
         this.needsReset = true;
+        this.ComponentStartTransform = new Transform3D(this.ComponentStartTransform.Basis, GetParentNode3D().GlobalTransform.Origin);
+    }
+
+    public void Disable()
+    {
+        this.ProcessMode = ProcessModeEnum.Disabled;
+        this.SetPhysicsProcess(false);
+    }
+
+    public void Enable()
+    {
+        this.ProcessMode = ProcessModeEnum.Always;
+        this.SetPhysicsProcess(true);
     }
 
 

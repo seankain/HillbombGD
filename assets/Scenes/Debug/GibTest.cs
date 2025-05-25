@@ -26,10 +26,20 @@ public partial class GibTest : Node3D
     public SpinBox LinearVelocityZ;
 
     [Export]
+    public SpinBox PositionX;
+
+    [Export]
+    public SpinBox PositionY;
+
+    [Export]
+    public SpinBox PositionZ;
+
+    [Export]
     public SpinBox ForceMultiplier;
 
     public void GibButtonClicked()
     {
+        GibSceneInstance.Teleport(new Vector3((float)PositionX.Value, (float)PositionY.Value, (float)PositionZ.Value));
         GibSceneInstance.Gibsplode(GetForceMultiplier(), GetLinearVelocity(), GetAngularVelocity());
     }
 

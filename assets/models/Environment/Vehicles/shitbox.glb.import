@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bckd3gnajy2gb"
-path="res://.godot/imported/shitbox.glb-240231116170557593374dd95358310d.scn"
+uid="uid://jacagpmxr6gb"
+path="res://.godot/imported/shitbox.glb-88cdcdb36121a0829067fbb164d8718b.scn"
 
 [deps]
 
-source_file="res://assets/models/shitbox.glb"
-dest_files=["res://.godot/imported/shitbox.glb-240231116170557593374dd95358310d.scn"]
+source_file="res://assets/models/Environment/Vehicles/shitbox.glb"
+dest_files=["res://.godot/imported/shitbox.glb-88cdcdb36121a0829067fbb164d8718b.scn"]
 
 [params]
 
