@@ -7,10 +7,12 @@ public partial class Gib : RigidBody3D
 {
     private bool needsReset = false;
     private Transform3D ComponentStartTransform;
+    private MeshInstance3D meshInstance3D;
 
     public override void _Ready()
     {
         this.ComponentStartTransform = new Transform3D(this.Transform.Basis, GetParentNode3D().Transform.Origin);
+        this.meshInstance3D = this.GetChildByType<MeshInstance3D>();
     }
 
     public void Reset()
@@ -23,12 +25,14 @@ public partial class Gib : RigidBody3D
     {
         this.ProcessMode = ProcessModeEnum.Disabled;
         this.SetPhysicsProcess(false);
+        this.meshInstance3D.Hide();
     }
 
     public void Enable()
     {
         this.ProcessMode = ProcessModeEnum.Always;
         this.SetPhysicsProcess(true);
+        this.meshInstance3D.Show();
     }
 
 

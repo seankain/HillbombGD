@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://dmiepdhvmkek4"]
+[gd_scene load_steps=27 format=3 uid="uid://dmiepdhvmkek4"]
 
 [ext_resource type="PackedScene" uid="uid://bu7vjbcy60yob" path="res://assets/models/Environment/Buildings/street_flat.glb" id="1_hcaeu"]
 [ext_resource type="Script" uid="uid://dsaoiv6kvx57x" path="res://assets/Scripts/HillChunk.cs" id="1_j880e"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://df6i2vde8dtm3" path="res://assets/models/Environment/Buildings/Prefab/House3.tscn" id="14_owvnk"]
 [ext_resource type="PackedScene" uid="uid://byfyafae7qwo2" path="res://assets/models/Environment/Buildings/Prefab/House4.tscn" id="16_sgxsd"]
 [ext_resource type="PackedScene" uid="uid://dddnvhxns8qei" path="res://assets/Scenes/Car.tscn" id="17_vy1ph"]
+[ext_resource type="PackedScene" uid="uid://bymc4e6ft43ia" path="res://assets/models/Environment/Obstacles/tree1.tscn" id="18_i3o57"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -305,5 +306,8 @@ curve = SubResource("Curve3D_rtmc7")
 
 [node name="IntersectionLeftPath" type="Path3D" parent="."]
 curve = SubResource("Curve3D_oxrhu")
+
+[node name="Tree1" parent="." instance=ExtResource("18_i3o57")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -9.8, 34)
 
 [editable path="Street/street_apron"]
