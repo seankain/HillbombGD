@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://cca5qhyoh8pl3"]
+
+[node name="TestCar" type="Node3D"]

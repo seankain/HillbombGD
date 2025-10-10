@@ -1,0 +1,139 @@
+[gd_scene load_steps=7 format=3 uid="uid://kiveqbdqm8ua"]
+
+[ext_resource type="PackedScene" uid="uid://dddnvhxns8qei" path="res://assets/Scenes/Car.tscn" id="1_ohg3t"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hj1j2"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_4puo2"]
+material = SubResource("StandardMaterial3D_hj1j2")
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_ohg3t"]
+
+[sub_resource type="Sky" id="Sky_wj1au"]
+sky_material = SubResource("PhysicalSkyMaterial_ohg3t")
+
+[sub_resource type="Environment" id="Environment_kako5"]
+background_mode = 2
+sky = SubResource("Sky_wj1au")
+ambient_light_color = Color(1, 1, 1, 1)
+
+[node name="CarTest" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707104, 0.612376, -0.353553, -1.49013e-08, 0.499998, 0.866027, 0.70711, -0.612371, 0.353551, 0, 17, 1)
+light_energy = 2.0
+shadow_enabled = true
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="."]
+transform = Transform3D(311.075, 0, 0, 0, 1, 0, 0, 0, 435.58, 0, 0, 0)
+use_collision = true
+mesh = SubResource("BoxMesh_4puo2")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.003, 1.61588, 3.09527)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_kako5")
+
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 9.28304, -10)
+light_energy = 10.0
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LinearVelocityX" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_right = 86.5625
+offset_bottom = 31.0
+
+[node name="LinearVelocityY" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 187.0
+offset_right = 273.563
+offset_bottom = 31.0
+
+[node name="LinearVelocityZ" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 90.0
+offset_right = 176.563
+offset_bottom = 31.0
+
+[node name="AngularVelocityX" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 43.0
+offset_right = 87.5625
+offset_bottom = 74.0
+
+[node name="AngularVelocityY" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 188.0
+offset_top = 43.0
+offset_right = 274.563
+offset_bottom = 74.0
+
+[node name="AngularVelocityZ" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 91.0
+offset_top = 43.0
+offset_right = 177.563
+offset_bottom = 74.0
+
+[node name="PositionX" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 317.0
+offset_top = 1.0
+offset_right = 403.563
+offset_bottom = 32.0
+min_value = -20.0
+max_value = 20.0
+
+[node name="PositionY" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 413.0
+offset_right = 499.563
+offset_bottom = 31.0
+min_value = -20.0
+max_value = 20.0
+
+[node name="PositionZ" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 510.0
+offset_top = -1.0
+offset_right = 596.563
+offset_bottom = 30.0
+min_value = -20.0
+max_value = 20.0
+
+[node name="ForceMultiplier" type="SpinBox" parent="Control"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 89.0
+offset_right = 87.5625
+offset_bottom = 120.0
+
+[node name="ResetButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 88.0
+offset_right = 163.0
+offset_bottom = 119.0
+text = "Reset"
+
+[node name="GibButton" type="Button" parent="Control"]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 88.0
+offset_right = 228.0
+offset_bottom = 119.0
+text = "Gib"
+
+[node name="Car" parent="." instance=ExtResource("1_ohg3t")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2, 3, -7)
+
+[connection signal="button_down" from="Control/ResetButton" to="." method="ResetButtonClicked"]
+[connection signal="button_down" from="Control/GibButton" to="." method="GibButtonClicked"]

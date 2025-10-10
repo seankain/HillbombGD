@@ -98,140 +98,175 @@ points = PackedVector3Array(-6.97746, -0.640166, -0.725299, -3.61857, -0.879993,
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_3xpat"]
 points = PackedVector3Array(-3.61857, -0.400198, -1.92537, -6.49762, -1.11996, -2.88496, -6.49762, -1.11996, -1.68536, -3.61857, -1.11996, -1.68536, -6.25206, -0.401835, -1.68808, -4.57844, -0.400198, -2.88496, -4.57844, -1.11996, -2.88496, -6.25751, -0.400198, -2.88496, -3.61857, -1.11996, -2.16539, -6.49762, -0.640166, -1.68536, -3.61857, -0.400198, -2.16539, -3.61857, -0.879993, -1.68536, -6.49762, -0.640166, -2.88496, -6.01768, -0.400198, -1.68536)
 
-[node name="Car" type="Node3D"]
-
-[node name="VehicleBody3D" type="VehicleBody3D" parent="."]
+[node name="VehicleBody3D" type="VehicleBody3D"]
 mass = 500.0
 
-[node name="shitbox" parent="VehicleBody3D" instance=ExtResource("1_gypw5")]
+[node name="shitbox" parent="." instance=ExtResource("1_gypw5")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
 
-[node name="CollisionShape3D32" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D32" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_gypw5")
 
-[node name="CollisionShape3D31" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D31" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_yyjwn")
 
-[node name="CollisionShape3D30" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D30" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_uhw6s")
 
-[node name="CollisionShape3D29" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D29" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_fi5nj")
 
-[node name="CollisionShape3D28" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D28" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_im4ai")
 
-[node name="CollisionShape3D27" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D27" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_fvwi6")
 
-[node name="CollisionShape3D26" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D26" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_28tw7")
 
-[node name="CollisionShape3D25" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D25" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_agc6n")
 
-[node name="CollisionShape3D24" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D24" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_1v6sh")
 
-[node name="CollisionShape3D23" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D23" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_njih8")
 
-[node name="CollisionShape3D22" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D22" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_unl1x")
 
-[node name="CollisionShape3D21" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D21" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_w8cxj")
 
-[node name="CollisionShape3D20" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D20" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_dm66a")
 
-[node name="CollisionShape3D19" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D19" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_hbmvq")
 
-[node name="CollisionShape3D18" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D18" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_jy818")
 
-[node name="CollisionShape3D17" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D17" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_ih2um")
 
-[node name="CollisionShape3D16" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D16" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_m34ft")
 
-[node name="CollisionShape3D15" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D15" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_5qtdb")
 
-[node name="CollisionShape3D14" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D14" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_6oa3q")
 
-[node name="CollisionShape3D13" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D13" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_cyh4n")
 
-[node name="CollisionShape3D12" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D12" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_tm45y")
 
-[node name="CollisionShape3D11" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D11" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_ntrjg")
 
-[node name="CollisionShape3D10" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D10" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_ld78p")
 
-[node name="CollisionShape3D9" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D9" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_b1j87")
 
-[node name="CollisionShape3D8" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D8" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_7ege5")
 
-[node name="CollisionShape3D7" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D7" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_lmr0q")
 
-[node name="CollisionShape3D6" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_k1k6m")
 
-[node name="CollisionShape3D5" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_xp21m")
 
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_lq0x8")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_v6tav")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_m3wlc")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="VehicleBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -3.27637, 0.739956, -0.337097)
 shape = SubResource("ConvexPolygonShape3D_3xpat")
 
-[editable path="VehicleBody3D/shitbox"]
+[node name="RightFrontWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -0.3, 0, -5.4)
+use_as_traction = true
+use_as_steering = true
+wheel_radius = 1.0
+wheel_rest_length = 0.0
+suspension_travel = 0.0
+suspension_stiffness = 50.0
+damping_compression = 0.3
+damping_relaxation = 0.5
+
+[node name="LeftFrontWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -6.2, 0, -5.4)
+use_as_traction = true
+use_as_steering = true
+wheel_roll_influence = 1.0
+wheel_radius = 1.0
+wheel_rest_length = 0.0
+suspension_travel = 0.0
+suspension_stiffness = 50.0
+
+[node name="RightRearWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -0.3, 0, 3.4)
+use_as_traction = true
+wheel_radius = 1.0
+wheel_rest_length = 0.0
+suspension_travel = 0.0
+suspension_stiffness = 50.0
+
+[node name="LeftRearWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -6.2, 0, 3.6)
+use_as_traction = true
+wheel_radius = 1.0
+wheel_rest_length = 0.0
+suspension_travel = 0.0
+suspension_stiffness = 50.0
+
+[editable path="shitbox"]
