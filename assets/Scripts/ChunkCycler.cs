@@ -52,7 +52,7 @@ public partial class ChunkCycler : Node3D
 	[Export]
 	public Node3D Player;
 	[Export]
-	public Ball playerController;
+	public BoardController playerController;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()

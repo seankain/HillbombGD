@@ -1,8 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://ccoeaxpvq47k1"]
+[gd_scene format=3 uid="uid://ccoeaxpvq47k1"]
 
 [ext_resource type="PackedScene" uid="uid://dmiepdhvmkek4" path="res://assets/Scenes/HillChunk.tscn" id="1_wcm61"]
 [ext_resource type="Script" uid="uid://b04pbdfxfb87n" path="res://assets/Scripts/ChunkCycler.cs" id="1_xfd5p"]
-[ext_resource type="PackedScene" uid="uid://c7bnglsbxijpw" path="res://assets/Scenes/ball.tscn" id="2_qggga"]
+[ext_resource type="PackedScene" uid="uid://c2wotjcw6i6qq" path="res://assets/Scenes/BoardController.tscn" id="4_20puj"]
 [ext_resource type="Shader" uid="uid://dvyb0iulrdjdg" path="res://assets/materials/cartoonwater.gdshader" id="4_guno6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_57r8s"]
@@ -44,41 +44,35 @@ shader_parameter/color2 = Color(0.274, 0.474, 0.98, 1)
 shader_parameter/color3 = Color(0.059, 0.389, 0.85, 1)
 shader_parameter/color4 = Color(0, 0.267, 1, 1)
 
-[node name="Level" type="Node3D"]
+[node name="Level" type="Node3D" unique_id=2058151846]
 
-[node name="HillChunks" type="Node3D" parent="." node_paths=PackedStringArray("Player", "playerController")]
+[node name="HillChunks" type="Node3D" parent="." unique_id=1831514362 node_paths=PackedStringArray("Player", "playerController")]
 script = ExtResource("1_xfd5p")
-Player = NodePath("../Watermelon")
-playerController = NodePath("../Watermelon")
+Player = NodePath("../BoardController")
+playerController = NodePath("../BoardController")
 
-[node name="HillChunk" parent="HillChunks" instance=ExtResource("1_wcm61")]
+[node name="HillChunk" parent="HillChunks" unique_id=1859208055 instance=ExtResource("1_wcm61")]
 unique_name_in_owner = true
 IsRespawnChunk = true
 
-[node name="HillChunk2" parent="HillChunks" instance=ExtResource("1_wcm61")]
+[node name="HillChunk2" parent="HillChunks" unique_id=2015328473 instance=ExtResource("1_wcm61")]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.23517e-08, -29.3, 123.6)
 
-[node name="HillChunk3" parent="HillChunks" instance=ExtResource("1_wcm61")]
+[node name="HillChunk3" parent="HillChunks" unique_id=784248094 instance=ExtResource("1_wcm61")]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -58.5, 247.3)
 
-[node name="Watermelon" parent="." instance=ExtResource("2_qggga")]
-process_mode = 3
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2)
-mass = 12.0
-gravity_scale = 8.0
-CameraChaseSpeed = 60.0
-RollingForce = 100.0
-DeathForce = 40000.0
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=987081032]
 environment = SubResource("Environment_ghquh")
 
-[node name="CSGMesh3D" type="CSGMesh3D" parent="."]
+[node name="CSGMesh3D" type="CSGMesh3D" parent="." unique_id=1674100991]
 transform = Transform3D(500, 0, 0, 0, 1, 0, 0, 0, 500, -3, -108, 2)
 mesh = SubResource("PlaneMesh_oeyka")
 material = SubResource("ShaderMaterial_oo6hm")
 
-[node name="HiddenPlace" type="Node3D" parent="."]
+[node name="HiddenPlace" type="Node3D" parent="." unique_id=1764514405]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -12, 0)
+
+[node name="BoardController" parent="." unique_id=1532552344 instance=ExtResource("4_20puj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 14)
