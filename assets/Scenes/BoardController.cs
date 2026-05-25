@@ -1,550 +1,268 @@
 using Godot;
 using System;
-using System.Runtime.InteropServices;
 
+/// <summary>
+/// Skateboard physics based on Rosatello, Dion, Renaud, Garibaldi —
+/// "The Skateboard Speed Wobble" (HAL-01369978, ASME IDETC 2015).
+///
+/// Lean-to-steer kinematic coupling (derived from rolling-without-slip constraints):
+///   ψ̇ = v · (tan λ_f + tan λ_r) · tan φ / L
+/// where λ are truck pivot angles, φ is lean angle, L is wheelbase.
+///
+/// Lean equation of motion (Lagrangian form):
+///   I·φ̈ = m·g·h·sin φ  −  m·v·ψ̇·h·cos φ  −  c·φ̇  +  τ_input
+///           gravity           centripetal         damping   rider
+/// </summary>
 public partial class BoardController : CharacterBody3D
 {
-	public const float Speed = 5.0f;
-	public const float JumpVelocity = 4.5f;
-	// Trying to reduce the floaty feeling when falling
-	[Export]
-	public float DownFallModifier = 1.65f;
+    [ExportGroup("Rider / Board")]
+    [Export] public float Mass = 75f;               // kg, rider + board
+    [Export] public float CenterOfMassHeight = 0.9f;// m, COM above ground
+    [Export] public float RollInertia = 20f;        // kg·m², lean-axis inertia
 
-	[Export]
-	public double AirDensity = 1.225;
-	// average human drag coefficient
-	[Export]
-	public double DragCoefficient = 1.0;
-	//for drag, meters squared
-	[Export]
-	public double ReferenceArea = 0.015;
-	[Export]
-	public double FrictionCoefficient = 0.02;
+    [ExportGroup("Truck Geometry")]
+    [Export] public float FrontPivotAngleDeg = 50f; // degrees from horizontal
+    [Export] public float RearPivotAngleDeg = 50f;  // degrees from horizontal
+    [Export] public float Wheelbase = 0.6f;         // m, front to rear truck contact
 
-	[Export]
-	public RayCast3D FrontTruckRay;
+    [ExportGroup("Lean Control")]
+    [Export] public float MaxLeanAngleDeg = 22f;    // degrees, rider lean limit
+    [Export] public float LeanInputTorque = 200f;   // N·m / rad of demanded lean
+    [Export] public float LeanDamping = 45f;        // N·m·s/rad, bushing damping
 
-	[Export]
-	public RayCast3D RearTruckRay;
+    [ExportGroup("Aerodynamics and Friction")]
+    [Export] public float AirDensity = 1.225f;      // kg/m³
+    [Export] public float DragCoefficient = 1.0f;   // dimensionless
+    [Export] public float FrontalArea = 0.5f;       // m²
+    [Export] public float RollingResistance = 0.01f;// dimensionless
 
-	public Node3D LeftFrontWheel;
-	public Node3D RightFrontWheel;
-	public Node3D LeftRearWheel;
-	public Node3D RightRearWheel;
-	public Node3D FrontAxle;
-	public Node3D RearAxle;
-	public bool SnapToSurface = true;
-	public float UprightStability = 0.3f;
-	public float UprightSpeed = 2.0f;
-	public bool UprightSingleAxis = false;
-	private WheelInfo[] wheelInfos;
-	public Vector3 OlliePopForce = new Vector3(0, 1000, 0);
-	public float SurfaceMatchSmoothing = 1f;
-	public float SmoothDampVelocity = 5f;
-	public float PlayerRotateSpeed = 5f;
-	public float AirRotateSpeed = 15f;
-	public float MaxTurnAngle = 5f;
-	public float TurnSpeed = 1f;
-	public float RayGroundDistance = 1f;
-	public float CastDistance = 0.1f;
-	public float SuspensionRestDistance = 0.1f;
-	public float Damping = 30f;
-	public float Strength = 100f;
-	public float Offset = 0.1f;
-	public float WheelGripFactor = 0.1f;
-	public float WheelMass = 1;
-	//private RigidBody3D rb;
-	private float horizontal = 0f;
-	private float vertical = 0f;
-	private float currentTurnAngle = 0f;
-	[Export]
-	public float RollingResistanceCoefficient = 0.5f;
-	private bool Grounded = false;
-	//TODO consider making separate monobehavior theres too much in here
-	private bool isGrinding = false;
-	//private Grindable currentGrindingSurface = null;
-	//private Vector3 GrindVelocity = Vector3.zero;
-	private bool isJumping;
+    [ExportGroup("Jump")]
+    [Export] public float JumpSpeed = 5f;           // m/s vertical impulse
 
-	public PlayerRespawnedEventHandler PlayerRespawned;
+    [ExportGroup("Raycasts")]
+    [Export] public RayCast3D FrontTruckRay;
+    [Export] public RayCast3D RearTruckRay;
 
-	// [SerializeField]
-	// private CharacterState characterState;
-	// [SerializeField]
-	// private Animator SkateboardAnimator;
+    // Physics state ───────────────────────────────────────────────────────────
+    private float _speed;       // m/s, along heading
+    private float _yaw;         // rad; forward direction = (sin ψ, 0, cos ψ)
+    private float _leanAngle;   // φ rad; positive = lean right
+    private float _leanRate;    // φ̇ rad/s
+    private float _airVelY;     // m/s vertical when airborne
 
-	void Start()
-	{
-		//rb = GetComponent<Rigidbody>();
+    public PlayerRespawnedEventHandler PlayerRespawned;
 
-		wheelInfos = new WheelInfo[4]
-		{
-			new WheelInfo(LeftFrontWheel),
-			new WheelInfo(RightFrontWheel),
-			new WheelInfo(LeftRearWheel),
-			new WheelInfo(RightRearWheel)
-		};
-		// Turning the colliders on messed with the inertia tensors and center of mass so manually setting them
-		// until i can figure out a way to do it correctly
-		//rb.inertiaTensor = new Vector3(11.78971f, 12.80615f, 1.080781f);
-		//rb.inertiaTensorRotation = Quaternion.Euler(0, 0, 359.9538f);
-		//rb.centerOfMass = new Vector3(0, -0.0900267f, 0.03401519f);
-		//GetComponent<BoxCollider>().enabled = true;
-		//GetComponent<CapsuleCollider>().enabled = true;
-		//rb.ResetInertiaTensor();
-	}
+    public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
 
-	// Update is called once per frame
-	// void Update(float deltaTime)
-	// {
-	// 	if (Input.IsActionPressed("Reset"))
-	// 	{
-	// 		Respawn();
-	// 	}
-	// 	Vector2 directional = Input.GetVector("Left", "Right", "Forward", "Backward");
-	// 	isJumping = Input.IsActionPressed("Jump");
-	// 	if (isGrinding)
-	// 	{
-	// 		//forces handled in fixed update
-	// 		//handle grinding inputs separately from normal riding
-	// 		//if (currentGrindingSurface.TryGetNextWaypoint(transform.position, out Transform nextGrindPosition))
-	// 		//{
-	// 		//    rb.velocity = Vector3.MoveTowards(transform.position, nextGrindPosition.position, GrindVelocity.z * Time.deltaTime);
-	// 		//}
-	// 		//if (isJumping)
-	// 		//{
-	// 		//    isGrinding = false;
-	// 		//    currentGrindingSurface = null;
-	// 		//    Ollie();
-	// 		//}
-	// 		//else
-	// 		//{
-	// 		//    return;
-	// 		//}
-	// 	}
-	// 	if (isJumping && Grounded)
-	// 	{
-	// 		Ollie();
-	// 		return;
-	// 	}
-	// 	currentTurnAngle += horizontal * TurnSpeed * deltaTime;
-	// 	if (horizontal == 0)
-	// 	{
-	// 		currentTurnAngle -= TurnSpeed * deltaTime;
-	// 		if (!Mathf.IsZeroApprox(currentTurnAngle))
-	// 		{
-	// 			currentTurnAngle = 0;
-	// 		}
-	// 	}
-	// 	currentTurnAngle = Mathf.Clamp(currentTurnAngle, -MaxTurnAngle, MaxTurnAngle);
-	// 	//Debug.Log(Vector3.Dot(transform.forward, Vector3.up));
-	// 	if (Transform.Basis.Z.Dot(Vector3.Up) <= 0)
-	// 	{
-	// 		FrontAxle.RotationDegrees = new Vector3(0, currentTurnAngle, 0);
+    private AnimationPlayer _animPlayer;
 
-	// 		RearAxle.RotationDegrees = new Vector3(0, -currentTurnAngle, 0);
-	// 	}
-	// 	else
-	// 	{
-	// 		FrontAxle.RotationDegrees = new Vector3(0, -currentTurnAngle, 0);
-	// 		RearAxle.RotationDegrees = new Vector3(0, currentTurnAngle, 0);
-	// 	}
+    // ─────────────────────────────────────────────────────────────────────────
 
-	// 	var ray = new Ray(transform.position, Vector3.down);
-	// 	//Debug.DrawRay(transform.position, Vector3.down, Color.yellow);
+    public override void _Ready()
+    {
+        _animPlayer = GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+        _yaw = 0f; // forward = +Z world (down the hill)
+    }
 
-	// 	if (SnapToSurface)
-	// 	{
-	// 		foreach (var wheelInfo in wheelInfos)
-	// 		{
-	// 			if (wheelInfo.Hitting)
-	// 			{
-	// 				transform.rotation = Quaternion.FromToRotation(wheelInfo.WheelTransform.up, wheelInfo.SurfaceNormal) * transform.rotation;
-	// 			}
-	// 		}
-	// 	}
+    public override void _Input(InputEvent @event)
+    {
+        if (@event.IsActionPressed("Reset"))
+            Respawn();
+    }
 
-	// 	if (Physics.Raycast(ray, out var hitInfo, 1, ~(1 << LayerMask.NameToLayer("Skateboard"))))
-	// 	{
-	// 		if (hitInfo.distance < RayGroundDistance)
-	// 		{
-	// 			Grounded = true;
-	// 			if (SnapToSurface)
-	// 			{
-	// 				//    //TODO smooth these out, also the weird snapping that happens when the character gets a raycast hit but isnt even close to rotated correctly
-	// 				//    //gameObject.transform.rotation = SmoothDampQuaternion(gameObject.transform.rotation, Quaternion.Euler(hitInfo.normal),ref SmoothDampVelocity,SurfaceMatchSmoothing );
-	// 				//    //gameObject.transform.rotation = Quaternion.Slerp(gameObject.transform.rotation, Quaternion.Euler(hitInfo.normal),SmoothDampVelocity);
-	// 				//    //-------------------
-	// 				//    //var n = new Vector3(hitInfo.normal.x, transform.rotation.eulerAngles.y, hitInfo.normal.z);
-	// 				//    //gameObject.transform.rotation *= Quaternion.FromToRotation(gameObject.transform.up, n);
-	// 				//    //gameObject.transform.Rotate(Vector3.down, -horizontal * PlayerRotateSpeed * Time.deltaTime);
-	// 				//    //This is finnicky still and has some problems compared to the single raycast from the middle
-	// 				//    foreach (var wheelInfo in wheelInfos)
-	// 				//    {
-	// 				//        if (wheelInfo.Hitting)
-	// 				//        {
-	// 				//            transform.rotation = Quaternion.FromToRotation(wheelInfo.WheelTransform.up, wheelInfo.SurfaceNormal) * transform.rotation;
-	// 				//        }
-	// 				//        //transform.rotation = Quaternion.LookRotation(wheelInfo.HitWorldLocation - wheelInfo.WheelTransform.position) * _childRPos;
-	// 				//    }
+    public override void _PhysicsProcess(double delta)
+    {
+        float dt = (float)delta;
+        bool grounded = IsOnFloor();
+        Vector3 normal = GetSurfaceNormal();
 
-	// 				//This works for the single central raycast but its too jerky and unresponsive to small terrain changes or slopes
-	// 				//uncomment the aligning with surface normal to use
-	// 				float headingDeltaAngle = Input.GetAxis("Horizontal") * Time.deltaTime * TurnSpeed;
-	// 				Quaternion headingDelta = Quaternion.AngleAxis(headingDeltaAngle, transform.up);
-	// 				//align with surface normal
-	// 				//transform.rotation = Quaternion.FromToRotation(transform.up, hitInfo.normal) * transform.rotation;
-	// 				//apply heading rotation
-	// 				transform.rotation = headingDelta * transform.rotation;
-	// 			}
-	// 		}
+        // ── Truck pivot angles ────────────────────────────────────────────────
+        float tanPivotF = Mathf.Tan(Mathf.DegToRad(FrontPivotAngleDeg));
+        float tanPivotR = Mathf.Tan(Mathf.DegToRad(RearPivotAngleDeg));
 
-	// 	}
-	// 	else
-	// 	{
-	// 		Grounded = false;
-	// 		//rb.AddTorque(-transform.up * (-horizontal * AirRotateSpeed * Time.deltaTime));
-	// 		//gameObject.transform.Rotate(Vector3.down, -horizontal * AirRotateSpeed * Time.deltaTime);
-	// 		//gameObject.transform.Rotate(Vector3.right, vertical * AirRotateSpeed * Time.deltaTime);
-	// 		//rb.AddTorque(transform.right * (vertical * AirRotateSpeed * Time.deltaTime));
-	// 	}
+        // ── Lean-to-steer coupling (HAL-01369978 kinematic constraint result) ─
+        // ψ̇ = v · (tan λ_f + tan λ_r) · tan φ / L
+        // Derivation: rolling-without-slip at both truck contact points yields
+        // ψ̇ = v·(tan δ_f − tan δ_r)/L where δ_f = arctan(tan λ_f · tan φ),
+        // δ_r = −arctan(tan λ_r · tan φ), so tan δ_f − tan δ_r simplifies to
+        // (tan λ_f + tan λ_r)·tan φ.
+        float tanLean    = Mathf.Tan(_leanAngle);
+        float yawRate    = _speed * (tanPivotF + tanPivotR) * tanLean / Wheelbase;
 
+        // ── Lean equation of motion ───────────────────────────────────────────
+        float leanInput  = Input.GetAxis("Left", "Right"); // −1 = left, +1 = right
+        float targetLean = leanInput * Mathf.DegToRad(MaxLeanAngleDeg);
 
-	// }
+        if (grounded)
+        {
+            // I·φ̈ = m·g·h·sin φ  −  m·v·ψ̇·h·cos φ  −  c·φ̇  +  τ_input
+            float gravTorque    = Mass * gravity * CenterOfMassHeight * Mathf.Sin(_leanAngle);
+            float centripTorque = -Mass * _speed * yawRate * CenterOfMassHeight * Mathf.Cos(_leanAngle);
+            float dampTorque    = -LeanDamping * _leanRate;
+            float inputTorque   = LeanInputTorque * (targetLean - _leanAngle);
 
+            float leanAccel = (gravTorque + centripTorque + dampTorque + inputTorque) / RollInertia;
+            _leanRate  += leanAccel * dt;
+            _leanAngle += _leanRate * dt;
+            _leanAngle  = Mathf.Clamp(_leanAngle,
+                Mathf.DegToRad(-MaxLeanAngleDeg),
+                Mathf.DegToRad(MaxLeanAngleDeg));
+        }
+        else
+        {
+            // Airborne: bleed lean and rate back to upright
+            _leanRate  *= Mathf.Exp(-8f * dt);
+            _leanAngle  = Mathf.Lerp(_leanAngle, 0f, 4f * dt);
+        }
 
-	// private static Quaternion SmoothSlerp(Transform current, Vector3 goalPosition, float speed)
-	// {
-	// 	var direction = (goalPosition - current.position).normalized;
-	// 	var goal = Quaternion.LookRotation(direction);
-	// 	return Quaternion.Slerp(current.rotation, goal, speed);
-	// }
+        // ── Forward speed: v̇ = g·sin α − drag/m − μ_r·g·cos α ────────────────
+        float slopeAngle = ComputeSlopeAngle(normal);
 
-	// private static Quaternion SmoothDampQuaternion(Quaternion current, Quaternion target, ref float velocity, float smoothTime)
-	// {
-	// 	Vector3 c = current.eulerAngles;
-	// 	Vector3 t = target.eulerAngles;
-	// 	return Quaternion.Euler(
-	// 	  Mathf.SmoothDampAngle(c.x, t.x, ref velocity, smoothTime),
-	// 	  Mathf.SmoothDampAngle(c.y, t.y, ref velocity, smoothTime),
-	// 	  Mathf.SmoothDampAngle(c.z, t.z, ref velocity, smoothTime)
-	// 	);
-	// }
+        if (grounded)
+        {
+            float gravComp   = gravity * Mathf.Sin(slopeAngle);
+            float dragComp   = 0.5f * AirDensity * DragCoefficient * FrontalArea
+                               * _speed * Mathf.Abs(_speed) / Mass;
+            float rollComp   = RollingResistance * gravity * Mathf.Cos(slopeAngle);
+            _speed += (gravComp - dragComp - rollComp) * dt;
+        }
+        else
+        {
+            float dragComp = 0.5f * AirDensity * DragCoefficient * FrontalArea
+                             * _speed * Mathf.Abs(_speed) / Mass;
+            _speed -= dragComp * dt;
+        }
 
+        // ── Integrate yaw ─────────────────────────────────────────────────────
+        if (grounded)
+            _yaw += yawRate * dt;
 
-	// private void AdjustWheelSuspension(Transform wheel, Vector3 wheelWorldVelocity)
-	// {
-	// 	var ray = new Ray(wheel.position, Vector3.down);
-	// 	Debug.DrawRay(wheel.position, Vector3.down, Color.red);
-	// 	if (Physics.Raycast(ray, out var hitInfo, CastDistance, ~(1 << LayerMask.NameToLayer("Skateboard"))))
-	// 	{
-	// 		//Credit to Toyful games from their Very Very Valet tutorial
-	// 		// world-space velocity of wheel
-	// 		Vector3 springDir = wheel.up;
-	// 		//calculate the offset from the raycast
-	// 		float offset = SuspensionRestDistance - hitInfo.distance;
-	// 		//calculate velocity along the spring direction
-	// 		// note that springDir is a unit vector, so this returns the magnitude of wheel world velocity
-	// 		// as projected onto spring dir
-	// 		float vel = Vector3.Dot(springDir, wheelWorldVelocity);
-	// 		//calculate the magnitude of the damped spring force
-	// 		float force = (offset * Strength) - (vel * Damping);
-	// 		rb.AddForceAtPosition(springDir * force, wheel.position);
-	// 	}
-	// }
+        // ── Jump ──────────────────────────────────────────────────────────────
+        if (Input.IsActionJustPressed("Jump") && grounded)
+            _airVelY = JumpSpeed;
 
-	// private void AdjustWheelSlip(Transform wheel)
-	// {
-	// 	Vector3 steeringDir = wheel.right;
-	// 	//worldspace velocity of the suspension
-	// 	Vector3 wheelWorldVel = rb.GetPointVelocity(wheel.position);
-	// 	//what is the wheels velocity in the steering direction?
-	// 	// note that steeringDir is a unit vector, so this returns the magnitude of wheelWorldVel
-	// 	float steeringVel = Vector3.Dot(steeringDir, wheelWorldVel);
-	// 	// the change in velocity that we're looking for is -steeringVel*gripFactor
-	// 	// grip factor is in range 0-1,0 means no grip, 1 means full grip
-	// 	float desiredVelChange = -steeringVel * WheelGripFactor;
-	// 	//turn change in velocity into an acceleration
-	// 	//this will produce the acceleration necessary to change the velocity by desiredVelChange in 1 physics step
-	// 	float desiredAccel = desiredVelChange / Time.fixedDeltaTime;
-	// 	rb.AddForceAtPosition(steeringDir * WheelMass * desiredAccel, wheel.position);
-	// }
+        // ── Build velocity for CharacterBody3D ────────────────────────────────
+        Vector3 fwdWorld = new Vector3(Mathf.Sin(_yaw), 0f, Mathf.Cos(_yaw));
 
-	// private void AddSteeringForces(WheelInfo wheelInfo)
-	// {
-	// 	var wheel = wheelInfo.WheelTransform;
-	// 	//Credit to Toyful games from their Very Very Valet tutorial
-	// 	var ray = new Ray(wheel.position, Vector3.down * CastDistance);
-	// 	Debug.DrawRay(wheel.position, Vector3.down * CastDistance, Color.red);
-	// 	if (Physics.Raycast(ray, out var hitInfo, CastDistance, ~(1 << LayerMask.NameToLayer("Skateboard"))))
-	// 	{
-	// 		wheelInfo.SurfaceNormal = hitInfo.normal;
-	// 		wheelInfo.Hitting = true;
-	// 		wheelInfo.HitWorldLocation = hitInfo.point;
-	// 		//Spring
-	// 		Vector3 wheelWorldVel = rb.GetPointVelocity(wheel.position);
-	// 		//Credit to Toyful games from their Very Very Valet tutorial
-	// 		// world-space velocity of wheel
-	// 		Vector3 springDir = wheel.up;
-	// 		//calculate the offset from the raycast
-	// 		float offset = SuspensionRestDistance - hitInfo.distance;
-	// 		//calculate velocity along the spring direction
-	// 		// note that springDir is a unit vector, so this returns the magnitude of wheel world velocity
-	// 		// as projected onto spring dir
-	// 		float vel = Vector3.Dot(springDir, wheelWorldVel);
-	// 		//calculate the magnitude of the damped spring force
-	// 		float force = (offset * Strength) - (vel * Damping);
-	// 		rb.AddForceAtPosition(springDir * force, wheel.position);
+        Vector3 velocity;
+        if (grounded)
+        {
+            // Project heading onto slope so the board follows the terrain
+            Vector3 fwdSlope = ProjectOntoPlane(fwdWorld, normal);
+            velocity = fwdSlope * _speed;
+        }
+        else
+        {
+            _airVelY -= gravity * dt;
+            velocity   = fwdWorld * _speed;
+            velocity.Y = _airVelY;
+        }
 
-	// 		//Steering
-	// 		Vector3 steeringDir = wheel.right;
-	// 		//worldspace velocity of the suspension
-	// 		//what is the wheels velocity in the steering direction?
-	// 		// note that steeringDir is a unit vector, so this returns the magnitude of wheelWorldVel
-	// 		float steeringVel = Vector3.Dot(steeringDir, wheelWorldVel);
-	// 		// the change in velocity that we're looking for is -steeringVel*gripFactor
-	// 		// grip factor is in range 0-1,0 means no grip, 1 means full grip
-	// 		float desiredVelChange = -steeringVel * WheelGripFactor;
-	// 		//turn change in velocity into an acceleration
-	// 		//this will produce the acceleration necessary to change the velocity by desiredVelChange in 1 physics step
-	// 		float desiredAccel = desiredVelChange / Time.fixedDeltaTime;
-	// 		rb.AddForceAtPosition(steeringDir * WheelMass * desiredAccel, wheel.position);
-	// 	}
-	// 	else
-	// 	{
-	// 		wheelInfo.Hitting = false;
-	// 	}
-	// }
+        Velocity = velocity;
+        MoveAndSlide();
 
-	// private void OnCollisionEnter(Collision collision)
-	// {
-	// 	if (collision.gameObject.tag == "Grindable")
-	// 	{
-	// 		GD.Print("Grinding");
-	// 		GrindVelocity = new Vector3(0, 0, rb.velocity.z);
-	// 		currentGrindingSurface = collision.gameObject.GetComponent<Grindable>();
-	// 		transform.position = currentGrindingSurface.GetInitPosition(collision.contacts[0].point);
-	// 		//rb.velocity = new Vector3(0, 0, 0);
-	// 		isGrinding = true;
-	// 	}
-	// }
+        // Re-sync scalar speed from post-slide horizontal velocity
+        if (grounded)
+        {
+            var hv = new Vector3(Velocity.X, 0f, Velocity.Z);
+            _speed = hv.Length() * (_speed >= 0f ? 1f : -1f);
+        }
+        else
+        {
+            _airVelY = Velocity.Y;
+        }
 
-	// private void OnCollisionStay(Collision collision)
-	// {
-	// 	if (collision.gameObject.tag == "Grindable")
-	// 	{
-	// 		Debug.Log(gameObject.name);
+        // ── Orient board to surface + lean ────────────────────────────────────
+        UpdateOrientation(normal, dt);
+        UpdateLeanAnimation();
+    }
 
-	// 	}
-	// }
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-	// private void OnCollisionExit(Collision collision)
-	// {
-	// 	if (collision.gameObject.tag == "Grindable")
-	// 	{
-	// 		GD.Print("Stop grinding");
-	// 		isGrinding = false;
-	// 		currentGrindingSurface = null;
-	// 	}
-	// }
+    private Vector3 GetSurfaceNormal()
+    {
+        bool fHit = FrontTruckRay != null && FrontTruckRay.IsColliding();
+        bool rHit = RearTruckRay  != null && RearTruckRay.IsColliding();
+        if (fHit && rHit)
+            return ((FrontTruckRay.GetCollisionNormal() + RearTruckRay.GetCollisionNormal()) * 0.5f).Normalized();
+        if (fHit) return FrontTruckRay.GetCollisionNormal();
+        if (rHit) return RearTruckRay.GetCollisionNormal();
+        if (IsOnFloor()) return GetFloorNormal();
+        return Vector3.Up;
+    }
 
-	// private void Ollie()
-	// {
-	// 	characterState.Ollie();
-	// 	SkateboardAnimator.SetTrigger("Ollie");
-	// 	rb.AddForce(OlliePopForce);
-	// }
+    // Slope angle in the board's heading direction; positive when heading downhill.
+    private float ComputeSlopeAngle(Vector3 normal)
+    {
+        Vector3 fwdH  = new Vector3(Mathf.Sin(_yaw), 0f, Mathf.Cos(_yaw));
+        Vector3 right = fwdH.Cross(normal);
+        if (right.LengthSquared() < 1e-6f) return 0f;
+        Vector3 fwdSlope = normal.Cross(right.Normalized()).Normalized();
+        return Mathf.Asin(Mathf.Clamp(-fwdSlope.Y, -1f, 1f));
+    }
 
-	private void Respawn()
-	{
-		var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
-		this.GlobalTransform = new Transform3D(respawn.GlobalTransform.Basis, respawn.GlobalPosition);
-		this.PlayerRespawned?.Invoke(this, new PlayerRespawnArgs());
-		this.Velocity = Vector3.Zero;
-	}
+    // Project v onto the plane defined by normal and return normalized result.
+    private static Vector3 ProjectOntoPlane(Vector3 v, Vector3 normal)
+    {
+        Vector3 p = v - v.Dot(normal) * normal;
+        return p.LengthSquared() > 1e-6f ? p.Normalized() : v;
+    }
 
-	// private void FixedUpdate()
-	// {
-	// 	if (isGrinding)
-	// 	{
-	// 		if (currentGrindingSurface.TryGetNextWaypoint(transform.position, out Transform nextGrindPosition))
-	// 		{
-	// 			rb.AddForce(Vector3.MoveTowards(transform.position, nextGrindPosition.position, GrindVelocity.z * Time.fixedDeltaTime));
-	// 		}
-	// 		if (isJumping)
-	// 		{
-	// 			isGrinding = false;
-	// 			currentGrindingSurface = null;
-	// 			Ollie();
-	// 		}
-	// 		else
-	// 		{
-	// 			return;
-	// 		}
-	// 		return;
-	// 	}
-	// 	foreach (var wheelInfo in wheelInfos)
-	// 	{
-	// 		AddSteeringForces(wheelInfo);
-	// 	}
-	// 	if (!Grounded)
-	// 	{
-	// 		rb.AddTorque(-transform.up * (-horizontal * AirRotateSpeed * Time.fixedDeltaTime));
-	// 		rb.AddTorque(transform.right * (vertical * AirRotateSpeed * Time.fixedDeltaTime));
-	// 	}
-	// 	//trying to find a way to stop wacky flipping without locking rigidbody
-	// 	//https://answers.unity.com/questions/10425/how-to-stabilize-angular-motion-alignment-of-hover.html
-	// 	var predictedUp = Quaternion.AngleAxis(rb.angularVelocity.magnitude * Mathf.Rad2Deg * UprightStability / UprightSpeed, rb.angularVelocity) * transform.up;
-	// 	var torqueVector = Vector3.Cross(predictedUp, Vector3.up);
-	// 	if (UprightSingleAxis)
-	// 	{
-	// 		Vector3.Project(torqueVector, transform.forward);
-	// 	}
-	// 	rb.AddTorque(torqueVector * UprightSpeed * UprightSpeed);
-	// 	//foreach (var wheel in wheels)
-	// 	//{
-	// 	//    AddSteeringForces(wheel);
-	// 	//}
-	// }
+    // Smoothly align board basis with the slope surface and apply lean roll.
+    private void UpdateOrientation(Vector3 normal, float dt)
+    {
+        Vector3 fwdH  = new Vector3(Mathf.Sin(_yaw), 0f, Mathf.Cos(_yaw));
+        Vector3 right = fwdH.Cross(normal);
+        if (right.LengthSquared() < 1e-4f) return;
+        right = right.Normalized();
+        Vector3 up  = normal;
+        Vector3 fwd = up.Cross(right).Normalized();
 
-	/// <summary>
-	///  From https://kidscancode.org/godot_recipes/3.x/3d/3d_align_surface/
-	///  Given a transform and a new Y direction vector, this function returns the transform rotated so that its basis.y is aligned with the given normal.
-	/// </summary>
-	/// <param name="transform"> The input transform </param>
-	/// <param name="yDirVec">The y direction vector</param>
-	/// <returns></returns>
-	private Transform3D alignWithY(Transform3D transform, Vector3 yDirVec)
-	{
-		transform.Basis.Y = yDirVec;
-		transform.Basis.X = -transform.Basis.Z.Cross(yDirVec);
-		transform.Basis = transform.Basis.Orthonormalized();
-		return transform;
-	}
+        // Rotate up and right around the forward axis by the lean angle
+        var leanQuat   = new Quaternion(fwd, _leanAngle);
+        var targetBasis = new Basis(leanQuat * right, leanQuat * up, -fwd);
+        var smoothed    = GlobalTransform.Basis.Slerp(targetBasis, Mathf.Min(1f, 12f * dt));
+        GlobalTransform = new Transform3D(smoothed, GlobalTransform.Origin);
+    }
 
-	private Vector3 AverageNormalized(Vector3 a, Vector3 b)
-	{
-		var averaged = Vector3.Zero;
-		averaged.X = (a.X + b.X) / 2;
-		averaged.Y = (a.Y + b.Y) / 2;
-		averaged.Z = (a.Z + b.Z) / 2;
-		return averaged;
-	}
+    private void UpdateLeanAnimation()
+    {
+        if (_animPlayer == null) return;
+        if (_leanAngle < -0.05f)
+            _animPlayer.Play("TurnLeft");
+        else if (_leanAngle > 0.05f)
+            _animPlayer.Play("TurnRight");
+    }
 
-	// Get the gravity from the project settings to be synced with RigidBody nodes.
-	public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
-
-	public override void _Input(InputEvent @event)
-	{
-		if (@event.IsActionPressed("Reset"))
-		{
-			Respawn();
-		}
-	}
-
-	private double CalculateVelocity(double deltaTime, double hillAngle, double currentVelocity)
-	{
-		//const double gravity = 9.81; // acceleration due to gravity (m/s^2)
-		// standard air density kg per meter cubed
-
-		// Convert the hill angle to radians
-		double hillAngleRadians = hillAngle * Math.PI / 180.0;
-
-		// Calculate acceleration due to gravity component along the slope
-		double gravityComponent = gravity * Math.Sin(hillAngleRadians);
-
-		// Calculate rolling resistance force (simplified model)
-		double rollingResistance = RollingResistanceCoefficient * gravity * Math.Cos(hillAngleRadians);
-
-		double dragForce = 0.5 * DragCoefficient * AirDensity * Math.Pow(currentVelocity, 2) * ReferenceArea;
-
-		// Calculate friction force
-		double frictionForce = FrictionCoefficient * gravity * Math.Cos(hillAngleRadians);
-
-		// Calculate net acceleration
-		double netAcceleration = gravityComponent - rollingResistance - dragForce - frictionForce;
-
-		// Update current velocity using the kinematic equation: v = u + at
-		currentVelocity += netAcceleration * deltaTime;
-
-		return currentVelocity;
-	}
-
-	public override void _PhysicsProcess(double delta)
-	{
-		Vector3 velocity = Velocity;
-
-		// Add the gravity.
-		if (!IsOnFloor())
-		{
-			velocity.Y -= gravity * DownFallModifier * (float)delta;
-		}
-		else
-		{
-			// Try to get board to line up with surface normal if touching
-			var nf = Vector3.Zero;
-			if (FrontTruckRay.IsColliding()) { nf = FrontTruckRay.GetCollisionNormal(); GD.Print($"Front truck {nf}"); }
-			var nr = Vector3.Up;
-			if (RearTruckRay.IsColliding()) { nr = RearTruckRay.GetCollisionNormal(); GD.Print($"Rear truck {nr}"); }
-			var n = AverageNormalized(nr, nf);
-			var xform = alignWithY(this.Transform, n);
-			this.GlobalTransform = GlobalTransform.InterpolateWith(xform, 0.5f);
-			// dumb hack to keep board facing down the hill but will need to be changed when powerslides can happen
-			this.Rotation = new Vector3(this.Rotation.X, 0, this.Rotation.Z);
-			// This worked sort of okay
-			//this.Rotation = this.GetFloorNormal();
-			//this.RotationDegrees = new Vector3(this.GetFloorAngle() * 180 / Mathf.Pi, 0, 0);
-		}
-
-		// Handle Jump.
-		if (Input.IsActionJustPressed("Jump") && IsOnFloor())
-		{
-			velocity.Y = JumpVelocity;
-		}
-
-		// Get the input direction and handle the movement/deceleration.
-		// As good practice, you should replace UI actions with custom gameplay actions.
-		Vector2 inputDir = Input.GetVector("Left", "Right", "Forward", "Backward");
-		Vector3 direction = (Transform.Basis * new Vector3(inputDir.X, 0, inputDir.Y)).Normalized();
-		if (direction != Vector3.Zero)
-		{
-			velocity.X = -direction.X * Speed;
-			//velocity.Z = direction.Z * Speed;
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-			//velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
-		}
-		velocity.Z = (float)CalculateVelocity(delta, 17, Velocity.Z);
-		//GD.Print(velocity.Z);
-		Velocity = velocity;
-		MoveAndSlide();
-	}
+    private void Respawn()
+    {
+        var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
+        GlobalTransform = new Transform3D(respawn.GlobalTransform.Basis, respawn.GlobalPosition);
+        PlayerRespawned?.Invoke(this, new PlayerRespawnArgs());
+        Velocity   = Vector3.Zero;
+        _speed     = 0f;
+        _leanAngle = 0f;
+        _leanRate  = 0f;
+        _yaw       = 0f;
+        _airVelY   = 0f;
+    }
 }
 
 
 public class WheelSuspensionSpring
 {
-	public float Offset;
-	public float Strength = 100;
-	public float Damping = 10;
-
-	public float GetForce(float velocity)
-	{
-		return (Offset * Strength) - (velocity * Damping);
-	}
+    public float Offset;
+    public float Strength = 100;
+    public float Damping = 10;
+    public float GetForce(float velocity) => (Offset * Strength) - (velocity * Damping);
 }
 
 
 public class WheelInfo
 {
-	public WheelInfo(Node3D wheelTransform)
-	{
-		this.WheelTransform = wheelTransform;
-	}
-	public Node3D WheelTransform;
-	public bool Hitting = false;
-	public Vector3 SurfaceNormal;
-	public Vector3 HitWorldLocation;
+    public WheelInfo(Node3D wheelTransform) => WheelTransform = wheelTransform;
+    public Node3D WheelTransform;
+    public bool Hitting;
+    public Vector3 SurfaceNormal;
+    public Vector3 HitWorldLocation;
 }
