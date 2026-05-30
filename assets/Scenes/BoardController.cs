@@ -50,27 +50,13 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     private float _leanRate;    // φ̇ rad/s
     private float _airVelY;     // m/s vertical when airborne
 
-    public PlayerRespawnedEventHandler PlayerRespawned;
+    public event PlayerRespawnedEventHandler PlayerRespawned;
 
     public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
 
     private AnimationPlayer _animPlayer;
 
-    event PlayerRespawnedEventHandler IRespawnablePlayer.PlayerRespawned
-    {
-        add
-        {
-            throw new NotImplementedException();
-        }
-
-        remove
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     // ─────────────────────────────────────────────────────────────────────────
-
 
 
     public override void _Ready()
