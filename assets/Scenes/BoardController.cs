@@ -50,6 +50,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     private float _leanRate;    // φ̇ rad/s
     private float _airVelY;     // m/s vertical when airborne
 
+    // Debug-readable state ────────────────────────────────────────────────────
+    public bool Grounded { get; private set; }
+    public float LeanAngle => _leanAngle;
+    public Vector3 CurrentSurfaceNormal { get; private set; }
+    public float SlopeAngle { get; private set; }
+
     public event PlayerRespawnedEventHandler PlayerRespawned;
 
     public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
@@ -75,7 +81,9 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     {
         float dt = (float)delta;
         bool grounded = IsOnFloor();
+        Grounded = grounded;
         Vector3 normal = GetSurfaceNormal();
+        CurrentSurfaceNormal = normal;
 
         // ── Truck pivot angles ────────────────────────────────────────────────
         float tanPivotF = Mathf.Tan(Mathf.DegToRad(FrontPivotAngleDeg));
@@ -118,6 +126,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 
         // ── Forward speed: v̇ = g·sin α − drag/m − μ_r·g·cos α ────────────────
         float slopeAngle = ComputeSlopeAngle(normal);
+        SlopeAngle = slopeAngle;
 
         if (grounded)
         {
