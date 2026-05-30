@@ -176,11 +176,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         Velocity = velocity;
         MoveAndSlide();
 
-        // Re-sync scalar speed from post-slide horizontal velocity
+        // Re-sync scalar speed from post-slide velocity magnitude.
+        // Using full Velocity.Length() (not just horizontal) avoids draining
+        // the cos(slope_angle) factor from the Y component each frame.
         if (grounded)
         {
-            var hv = new Vector3(Velocity.X, 0f, Velocity.Z);
-            _speed = hv.Length() * (_speed >= 0f ? 1f : -1f);
+            _speed = Velocity.Length() * (_speed >= 0f ? 1f : -1f);
         }
         else
         {
