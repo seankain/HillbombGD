@@ -13,7 +13,7 @@ using System;
 ///   I·φ̈ = m·g·h·sin φ  −  m·v·ψ̇·h·cos φ  −  c·φ̇  +  τ_input
 ///           gravity           centripetal         damping   rider
 /// </summary>
-public partial class BoardController : CharacterBody3D
+public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 {
     [ExportGroup("Rider / Board")]
     [Export] public float Mass = 75f;               // kg, rider + board
@@ -23,7 +23,7 @@ public partial class BoardController : CharacterBody3D
     [ExportGroup("Truck Geometry")]
     [Export] public float FrontPivotAngleDeg = 50f; // degrees from horizontal
     [Export] public float RearPivotAngleDeg = 50f;  // degrees from horizontal
-    [Export] public float Wheelbase = 0.6f;         // m, front to rear truck contact
+    [Export] public float Wheelbase = 0.35f;         // m, front to rear truck contact
 
     [ExportGroup("Lean Control")]
     [Export] public float MaxLeanAngleDeg = 22f;    // degrees, rider lean limit
@@ -56,7 +56,22 @@ public partial class BoardController : CharacterBody3D
 
     private AnimationPlayer _animPlayer;
 
+    event PlayerRespawnedEventHandler IRespawnablePlayer.PlayerRespawned
+    {
+        add
+        {
+            throw new NotImplementedException();
+        }
+
+        remove
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
+
+
 
     public override void _Ready()
     {
