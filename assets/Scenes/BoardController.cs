@@ -171,17 +171,13 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         Velocity = velocity;
         MoveAndSlide();
 
-        // Re-sync scalar speed from post-slide velocity magnitude.
-        // Using full Velocity.Length() (not just horizontal) avoids draining
-        // the cos(slope_angle) factor from the Y component each frame.
-        if (grounded)
-        {
-            _speed = Velocity.Length() * (_speed >= 0f ? 1f : -1f);
-        }
-        else
-        {
+        // _speed is purely physics-driven; do NOT sync it back from Velocity.
+        // MoveAndSlide may project away the slope Y component, making
+        // Velocity.Length() < _speed by cos(slopeAngle) every frame.
+        // Reading it back would create a lossy feedback loop that kills speed.
+        // Only track vertical velocity when airborne for correct jump arcs.
+        if (!grounded)
             _airVelY = Velocity.Y;
-        }
 
         // ── Orient board to surface + lean ────────────────────────────────────
         UpdateOrientation(normal, dt);
