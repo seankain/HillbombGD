@@ -24,7 +24,28 @@ ambient_light_sky_contribution = 0.0
 reflected_light_source = 2
 volumetric_fog_density = 0.5026
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_oeyka"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i5gl0"]
+render_priority = 0
+shader = ExtResource("4_guno6")
+shader_parameter/time_speed = 1.0
+shader_parameter/surface_speed = 1.0
+shader_parameter/spin = 0.0
+shader_parameter/brightness = 0.6
+shader_parameter/color_intensity = 0.0
+shader_parameter/horizontal_frequency = 2.0
+shader_parameter/vertical_frequency = 2.0
+shader_parameter/size = 3.0
+shader_parameter/banding_bias = 0.6
+shader_parameter/wave_height = 0.5
+shader_parameter/texture_height = 0.5
+shader_parameter/color1 = Color(0.59, 0.761, 1, 1)
+shader_parameter/color2 = Color(0.274, 0.474, 0.98, 1)
+shader_parameter/color3 = Color(0.059, 0.389, 0.85, 1)
+shader_parameter/color4 = Color(0, 0.267, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_se5ev"]
+material = SubResource("ShaderMaterial_i5gl0")
+size = Vector3(2000, 1, 2000)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_oo6hm"]
 render_priority = 0
@@ -44,6 +65,28 @@ shader_parameter/color1 = Color(0.59, 0.761, 1, 1)
 shader_parameter/color2 = Color(0.274, 0.474, 0.98, 1)
 shader_parameter/color3 = Color(0.059, 0.389, 0.85, 1)
 shader_parameter/color4 = Color(0, 0.267, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_se5ev"]
+render_priority = 0
+shader = ExtResource("4_guno6")
+shader_parameter/time_speed = 1.0
+shader_parameter/surface_speed = 1.0
+shader_parameter/spin = 0.0
+shader_parameter/brightness = 0.6
+shader_parameter/color_intensity = 0.0
+shader_parameter/horizontal_frequency = 2.0
+shader_parameter/vertical_frequency = 2.0
+shader_parameter/size = 3.0
+shader_parameter/banding_bias = 0.6
+shader_parameter/wave_height = 0.5
+shader_parameter/texture_height = 0.5
+shader_parameter/color1 = Color(0.59, 0.761, 1, 1)
+shader_parameter/color2 = Color(0.274, 0.474, 0.98, 1)
+shader_parameter/color3 = Color(0.059, 0.389, 0.85, 1)
+shader_parameter/color4 = Color(0, 0.267, 1, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_do663"]
+size = Vector2(2000, 2000)
 
 [node name="Level" type="Node3D" unique_id=2058151846]
 
@@ -69,7 +112,8 @@ environment = SubResource("Environment_ghquh")
 
 [node name="CSGMesh3D" type="CSGMesh3D" parent="." unique_id=1674100991]
 transform = Transform3D(500, 0, 0, 0, 1, 0, 0, 0, 500, -3, -108, 2)
-mesh = SubResource("PlaneMesh_oeyka")
+visible = false
+mesh = SubResource("BoxMesh_se5ev")
 material = SubResource("ShaderMaterial_oo6hm")
 
 [node name="HiddenPlace" type="Node3D" parent="." unique_id=1764514405]
@@ -77,6 +121,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -12, 0)
 
 [node name="BoardController" parent="." unique_id=1532552344 instance=ExtResource("4_20puj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2)
+floor_stop_on_slope = false
+MaxLeanAngleDeg = 45.0
 RollingResistance = 0.0
 
-[node name="Control" parent="." unique_id=1987570788 instance=ExtResource("5_i5gl0")]
+[node name="DebugUI" parent="." unique_id=1987570788 instance=ExtResource("5_i5gl0")]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1256504814]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -108, 0)
+material_override = SubResource("ShaderMaterial_se5ev")
+mesh = SubResource("QuadMesh_do663")
