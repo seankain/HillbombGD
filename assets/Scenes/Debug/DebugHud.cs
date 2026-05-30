@@ -10,18 +10,20 @@ public partial class DebugHud : Control
     private Label _velocityVal;
     private Label _leanVal;
     private Label _surfaceNormalVal;
+    private Label _slopeAngleVal;
 
     public override void _Ready()
     {
         _board = GetTree().GetFirstNodeInGroup("Player") as BoardController
               ?? GetNode<BoardController>("../BoardController");
 
-        _frontRayVal     = GetNode<Label>("VBoxContainer/FrontRayHBox/FrontRayValue");
-        _rearRayVal      = GetNode<Label>("VBoxContainer/RearRayHBox/RearRayValue");
-        _groundedVal     = GetNode<Label>("VBoxContainer/GroundedHBox/GroundedValue");
-        _velocityVal     = GetNode<Label>("VBoxContainer/VelocityHBox/VelocityValue");
-        _leanVal         = GetNode<Label>("VBoxContainer/LeanHBox/LeanValue");
+        _frontRayVal      = GetNode<Label>("VBoxContainer/FrontRayHBox/FrontRayValue");
+        _rearRayVal       = GetNode<Label>("VBoxContainer/RearRayHBox/RearRayValue");
+        _groundedVal      = GetNode<Label>("VBoxContainer/GroundedHBox/GroundedValue");
+        _velocityVal      = GetNode<Label>("VBoxContainer/VelocityHBox/VelocityValue");
+        _leanVal          = GetNode<Label>("VBoxContainer/LeanHBox/LeanValue");
         _surfaceNormalVal = GetNode<Label>("VBoxContainer/SurfaceNormalHBox/SurfaceNormalValue");
+        _slopeAngleVal    = GetNode<Label>("VBoxContainer/SlopeAngleHBox/SlopeAngleValue");
     }
 
     public override void _Process(double delta)
@@ -45,10 +47,12 @@ public partial class DebugHud : Control
         {
             Vector3 n = _board.CurrentSurfaceNormal;
             _surfaceNormalVal.Text = $"({n.X:F3}, {n.Y:F3}, {n.Z:F3})";
+            _slopeAngleVal.Text = $"{Mathf.RadToDeg(_board.SlopeAngle):F1}°";
         }
         else
         {
             _surfaceNormalVal.Text = "N/A (airborne)";
+            _slopeAngleVal.Text = "N/A (airborne)";
         }
     }
 }

@@ -54,6 +54,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     public bool Grounded { get; private set; }
     public float LeanAngle => _leanAngle;
     public Vector3 CurrentSurfaceNormal { get; private set; }
+    public float SlopeAngle { get; private set; }
 
     public event PlayerRespawnedEventHandler PlayerRespawned;
 
@@ -125,6 +126,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 
         // ── Forward speed: v̇ = g·sin α − drag/m − μ_r·g·cos α ────────────────
         float slopeAngle = ComputeSlopeAngle(normal);
+        SlopeAngle = slopeAngle;
 
         if (grounded)
         {

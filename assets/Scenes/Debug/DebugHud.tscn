@@ -84,3 +84,14 @@ text = "Surface Normal: "
 [node name="SurfaceNormalValue" type="Label" parent="VBoxContainer/SurfaceNormalHBox"]
 layout_mode = 2
 text = "---"
+
+[node name="SlopeAngleHBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="SlopeAngleLabel" type="Label" parent="VBoxContainer/SlopeAngleHBox"]
+layout_mode = 2
+text = "Slope Angle: "
+
+[node name="SlopeAngleValue" type="Label" parent="VBoxContainer/SlopeAngleHBox"]
+layout_mode = 2
+text = "---"
