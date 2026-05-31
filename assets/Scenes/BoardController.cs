@@ -94,7 +94,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         // Clamp effective speed so steering stays responsive at all velocities
         float steerSpeed = Mathf.Clamp(_speed, MinSteerSpeed, MaxSteerSpeed);
         float tanLean    = Mathf.Tan(_leanAngle);
-        float yawRate    = steerSpeed * (tanPivotF + tanPivotR) * tanLean / Wheelbase;
+        float yawRate    = -steerSpeed * (tanPivotF + tanPivotR) * tanLean / Wheelbase;
 
         // ── Lean control ──────────────────────────────────────────────────────
         float leanInput  = Input.GetAxis("Left", "Right");
@@ -221,7 +221,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         Vector3 up  = normal;
         Vector3 fwd = up.Cross(right).Normalized();
 
-        var leanQuat    = new Quaternion(fwd, -_leanAngle);
+        var leanQuat    = new Quaternion(fwd, _leanAngle);
         var targetBasis = new Basis(leanQuat * right, leanQuat * up, -fwd);
         var smoothed    = GlobalTransform.Basis.Slerp(targetBasis, Mathf.Min(1f, 12f * dt));
         GlobalTransform = new Transform3D(smoothed, GlobalTransform.Origin);
