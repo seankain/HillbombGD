@@ -6,7 +6,7 @@ public class PlayerRespawnArgs { }
 
 public delegate void PlayerRespawnedEventHandler(object sender, PlayerRespawnArgs e);
 
-public partial class Ball : RigidBody3D
+public partial class Ball : RigidBody3D, IRespawnablePlayer
 {
 
 	[Export]
@@ -42,9 +42,22 @@ public partial class Ball : RigidBody3D
 
 	private Vector3 prevVelocity = Vector3.Zero;
 
+    event PlayerRespawnedEventHandler IRespawnablePlayer.PlayerRespawned
+    {
+        add
+        {
+            throw new NotImplementedException();
+        }
 
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
+        remove
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
+    // Called when the node enters the scene tree for the first time.
+    public override void _Ready()
 	{
 		CameraRig.TopLevel = true;
 		FloorCheck.TopLevel = true;
