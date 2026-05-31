@@ -2,39 +2,39 @@ using Godot;
 using System;
 
 /// <summary>
-/// Skateboard physics based on Rosatello, Dion, Renaud, Garibaldi —
-/// "The Skateboard Speed Wobble" (HAL-01369978, ASME IDETC 2015).
-///
-/// Lean-to-steer kinematic coupling (derived from rolling-without-slip constraints):
+/// Arcade skateboard controller for downhill gameplay.
+/// Lean-to-steer coupling derived from truck geometry:
 ///   ψ̇ = v · (tan λ_f + tan λ_r) · tan φ / L
-/// where λ are truck pivot angles, φ is lean angle, L is wheelbase.
-///
-/// Lean equation of motion (Lagrangian form):
-///   I·φ̈ = m·g·h·sin φ  −  m·v·ψ̇·h·cos φ  −  c·φ̇  +  τ_input
-///           gravity           centripetal         damping   rider
+/// Lean is driven by a first-order spring tracking player input.
+/// Speed wobble injects sinusoidal perturbation above a threshold.
 /// </summary>
 public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 {
     [ExportGroup("Rider / Board")]
     [Export] public float Mass = 75f;               // kg, rider + board
     [Export] public float CenterOfMassHeight = 0.9f;// m, COM above ground
-    [Export] public float RollInertia = 20f;        // kg·m², lean-axis inertia
 
     [ExportGroup("Truck Geometry")]
     [Export] public float FrontPivotAngleDeg = 50f; // degrees from horizontal
     [Export] public float RearPivotAngleDeg = 50f;  // degrees from horizontal
-    [Export] public float Wheelbase = 0.35f;         // m, front to rear truck contact
+    [Export] public float Wheelbase = 0.35f;        // m, front to rear truck contact
 
     [ExportGroup("Lean Control")]
     [Export] public float MaxLeanAngleDeg = 22f;    // degrees, rider lean limit
-    [Export] public float LeanInputTorque = 200f;   // N·m / rad of demanded lean
-    [Export] public float LeanDamping = 45f;        // N·m·s/rad, bushing damping
+    [Export] public float LeanSpringRate = 25f;     // how snappy lean tracks input
+    [Export] public float MinSteerSpeed = 3f;       // m/s, minimum effective speed for steering
+    [Export] public float MaxSteerSpeed = 25f;      // m/s, cap speed used in yaw-rate calc
+
+    [ExportGroup("Speed Wobble")]
+    [Export] public float WobbleSpeedThreshold = 18f; // m/s, when wobble kicks in
+    [Export] public float WobbleMaxAmplitude = 0.08f; // radians (~4.5 degrees)
+    [Export] public float WobbleFrequencyRange = 8f;  // Hz base frequency
 
     [ExportGroup("Aerodynamics and Friction")]
     [Export] public float AirDensity = 1.225f;      // kg/m³
-    [Export] public float DragCoefficient = 1.0f;   // dimensionless
-    [Export] public float FrontalArea = 0.5f;       // m²
-    [Export] public float RollingResistance = 0.01f;// dimensionless
+    [Export] public float DragCoefficient = 1.0f;    // dimensionless
+    [Export] public float FrontalArea = 0.5f;        // m²
+    [Export] public float RollingResistance = 0.01f; // dimensionless
 
     [ExportGroup("Jump")]
     [Export] public float JumpSpeed = 5f;           // m/s vertical impulse
@@ -49,6 +49,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     private float _leanAngle;   // φ rad; positive = lean right
     private float _leanRate;    // φ̇ rad/s
     private float _airVelY;     // m/s vertical when airborne
+    private float _wobblePhase; // accumulated wobble oscillator phase
 
     // Debug-readable state ────────────────────────────────────────────────────
     public bool Grounded { get; private set; }
@@ -68,7 +69,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     public override void _Ready()
     {
         _animPlayer = GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
-        _yaw = 0f; // forward = +Z world (down the hill)
+        _yaw = 0f;
     }
 
     public override void _Input(InputEvent @event)
@@ -89,42 +90,39 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         float tanPivotF = Mathf.Tan(Mathf.DegToRad(FrontPivotAngleDeg));
         float tanPivotR = Mathf.Tan(Mathf.DegToRad(RearPivotAngleDeg));
 
-        // ── Lean-to-steer coupling (HAL-01369978 kinematic constraint result) ─
-        // ψ̇ = v · (tan λ_f + tan λ_r) · tan φ / L
-        // Derivation: rolling-without-slip at both truck contact points yields
-        // ψ̇ = v·(tan δ_f − tan δ_r)/L where δ_f = arctan(tan λ_f · tan φ),
-        // δ_r = −arctan(tan λ_r · tan φ), so tan δ_f − tan δ_r simplifies to
-        // (tan λ_f + tan λ_r)·tan φ.
+        // ── Lean-to-steer coupling ────────────────────────────────────────────
+        // Clamp effective speed so steering stays responsive at all velocities
+        float steerSpeed = Mathf.Clamp(_speed, MinSteerSpeed, MaxSteerSpeed);
         float tanLean    = Mathf.Tan(_leanAngle);
-        float yawRate    = _speed * (tanPivotF + tanPivotR) * tanLean / Wheelbase;
+        float yawRate    = steerSpeed * (tanPivotF + tanPivotR) * tanLean / Wheelbase;
 
-        // ── Lean equation of motion ───────────────────────────────────────────
-        float leanInput  = Input.GetAxis("Left", "Right"); // −1 = left, +1 = right
+        // ── Lean control ──────────────────────────────────────────────────────
+        float leanInput  = Input.GetAxis("Left", "Right");
         float targetLean = leanInput * Mathf.DegToRad(MaxLeanAngleDeg);
 
         if (grounded)
         {
-            // I·φ̈ = m·g·h·sin φ  −  m·v·ψ̇·h·cos φ  −  c·φ̇  +  τ_input
-            float gravTorque    = Mass * gravity * CenterOfMassHeight * Mathf.Sin(_leanAngle);
-            float centripTorque = -Mass * _speed * yawRate * CenterOfMassHeight * Mathf.Cos(_leanAngle);
-            float dampTorque    = -LeanDamping * _leanRate;
-            float inputTorque   = LeanInputTorque * (targetLean - _leanAngle);
-
-            float leanAccel = (gravTorque + centripTorque + dampTorque + inputTorque) / RollInertia;
-            _leanRate  += leanAccel * dt;
+            _leanRate = LeanSpringRate * (targetLean - _leanAngle);
             _leanAngle += _leanRate * dt;
-            _leanAngle  = Mathf.Clamp(_leanAngle,
-                Mathf.DegToRad(-MaxLeanAngleDeg),
+            _leanAngle = Mathf.Clamp(_leanAngle,
+                -Mathf.DegToRad(MaxLeanAngleDeg),
                 Mathf.DegToRad(MaxLeanAngleDeg));
+
+            // Speed wobble: sinusoidal perturbation above threshold
+            if (_speed > WobbleSpeedThreshold)
+            {
+                float wobbleIntensity = Mathf.Clamp((_speed - WobbleSpeedThreshold) / 15f, 0f, 1f);
+                _wobblePhase += WobbleFrequencyRange * Mathf.Tau * dt;
+                _leanAngle += wobbleIntensity * WobbleMaxAmplitude * Mathf.Sin(_wobblePhase);
+            }
         }
         else
         {
-            // Airborne: bleed lean and rate back to upright
             _leanRate  *= Mathf.Exp(-8f * dt);
             _leanAngle  = Mathf.Lerp(_leanAngle, 0f, 4f * dt);
         }
 
-        // ── Forward speed: v̇ = g·sin α − drag/m − μ_r·g·cos α ────────────────
+        // ── Forward speed ─────────────────────────────────────────────────────
         float slopeAngle = ComputeSlopeAngle(normal);
         SlopeAngle = slopeAngle;
 
@@ -148,22 +146,26 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
             _yaw += yawRate * dt;
 
         // ── Jump ──────────────────────────────────────────────────────────────
+        bool jumping = false;
         if (Input.IsActionJustPressed("Jump") && grounded)
+        {
             _airVelY = JumpSpeed;
+            jumping = true;
+        }
 
         // ── Build velocity for CharacterBody3D ────────────────────────────────
         Vector3 fwdWorld = new Vector3(Mathf.Sin(_yaw), 0f, Mathf.Cos(_yaw));
 
         Vector3 velocity;
-        if (grounded)
+        if (grounded && !jumping)
         {
-            // Project heading onto slope so the board follows the terrain
             Vector3 fwdSlope = ProjectOntoPlane(fwdWorld, normal);
             velocity = fwdSlope * _speed;
         }
         else
         {
-            _airVelY -= gravity * dt;
+            if (!jumping)
+                _airVelY -= gravity * dt;
             velocity   = fwdWorld * _speed;
             velocity.Y = _airVelY;
         }
@@ -172,11 +174,8 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         MoveAndSlide();
 
         // _speed is purely physics-driven; do NOT sync it back from Velocity.
-        // MoveAndSlide may project away the slope Y component, making
-        // Velocity.Length() < _speed by cos(slopeAngle) every frame.
-        // Reading it back would create a lossy feedback loop that kills speed.
         // Only track vertical velocity when airborne for correct jump arcs.
-        if (!grounded)
+        if (!grounded && !jumping)
             _airVelY = Velocity.Y;
 
         // ── Orient board to surface + lean ────────────────────────────────────
@@ -198,7 +197,6 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         return Vector3.Up;
     }
 
-    // Slope angle in the board's heading direction; positive when heading downhill.
     private float ComputeSlopeAngle(Vector3 normal)
     {
         Vector3 fwdH  = new Vector3(Mathf.Sin(_yaw), 0f, Mathf.Cos(_yaw));
@@ -208,14 +206,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         return Mathf.Asin(Mathf.Clamp(-fwdSlope.Y, -1f, 1f));
     }
 
-    // Project v onto the plane defined by normal and return normalized result.
     private static Vector3 ProjectOntoPlane(Vector3 v, Vector3 normal)
     {
         Vector3 p = v - v.Dot(normal) * normal;
         return p.LengthSquared() > 1e-6f ? p.Normalized() : v;
     }
 
-    // Smoothly align board basis with the slope surface and apply lean roll.
     private void UpdateOrientation(Vector3 normal, float dt)
     {
         Vector3 fwdH  = new Vector3(Mathf.Sin(_yaw), 0f, Mathf.Cos(_yaw));
@@ -225,8 +221,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         Vector3 up  = normal;
         Vector3 fwd = up.Cross(right).Normalized();
 
-        // Rotate up and right around the forward axis by the lean angle
-        var leanQuat   = new Quaternion(fwd, _leanAngle);
+        var leanQuat    = new Quaternion(fwd, -_leanAngle);
         var targetBasis = new Basis(leanQuat * right, leanQuat * up, -fwd);
         var smoothed    = GlobalTransform.Basis.Slerp(targetBasis, Mathf.Min(1f, 12f * dt));
         GlobalTransform = new Transform3D(smoothed, GlobalTransform.Origin);
@@ -246,12 +241,13 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
         GlobalTransform = new Transform3D(respawn.GlobalTransform.Basis, respawn.GlobalPosition);
         PlayerRespawned?.Invoke(this, new PlayerRespawnArgs());
-        Velocity   = Vector3.Zero;
-        _speed     = 0f;
-        _leanAngle = 0f;
-        _leanRate  = 0f;
-        _yaw       = 0f;
-        _airVelY   = 0f;
+        Velocity    = Vector3.Zero;
+        _speed      = 0f;
+        _leanAngle  = 0f;
+        _leanRate   = 0f;
+        _yaw        = 0f;
+        _airVelY    = 0f;
+        _wobblePhase = 0f;
     }
 }
 
