@@ -122,7 +122,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -12, 0)
 [node name="BoardController" parent="." unique_id=1532552344 instance=ExtResource("4_20puj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2)
 floor_stop_on_slope = false
-MaxLeanAngleDeg = 45.0
+FrontPivotAngleDeg = 20.0
+RearPivotAngleDeg = 20.0
+MaxLeanAngleDeg = 15.0
+SlideYawAngleDeg = 90.0
+SlideFrictionMultiplier = 50.0
 RollingResistance = 0.0
 
 [node name="DebugUI" parent="." unique_id=1987570788 instance=ExtResource("5_i5gl0")]
