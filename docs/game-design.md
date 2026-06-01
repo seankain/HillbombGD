@@ -21,8 +21,8 @@ An arcade-style skateboarding game where the player bombs down an endless San Fr
 | R | Reset / respawn |
 
 Future inputs (not yet bound):
-- Powerslide (scrub speed)
-- Grab / tuck (reduce drag)
+- Powerslide (scrub speed) - Can be performed up to a certain maximum speed threshold, any faster and the player has to find another way to slow down.
+- Grab / tuck (reduce drag) - Push the the center of gravity forward and increase stability at the expense of turning speed.
 
 ## Scoring
 
