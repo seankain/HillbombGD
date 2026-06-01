@@ -11,6 +11,7 @@ public partial class DebugHud : Control
     private Label _leanVal;
     private Label _surfaceNormalVal;
     private Label _slopeAngleVal;
+    private Label _slidingVal;
 
     public override void _Ready()
     {
@@ -24,6 +25,7 @@ public partial class DebugHud : Control
         _leanVal          = GetNode<Label>("VBoxContainer/LeanHBox/LeanValue");
         _surfaceNormalVal = GetNode<Label>("VBoxContainer/SurfaceNormalHBox/SurfaceNormalValue");
         _slopeAngleVal    = GetNode<Label>("VBoxContainer/SlopeAngleHBox/SlopeAngleValue");
+        _slidingVal       = GetNodeOrNull<Label>("VBoxContainer/SlidingHBox/SlidingValue");
     }
 
     public override void _Process(double delta)
@@ -54,5 +56,8 @@ public partial class DebugHud : Control
             _surfaceNormalVal.Text = "N/A (airborne)";
             _slopeAngleVal.Text = "N/A (airborne)";
         }
+
+        if (_slidingVal != null)
+            _slidingVal.Text = _board.IsSliding ? "YES" : "NO";
     }
 }
