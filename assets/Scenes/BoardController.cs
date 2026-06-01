@@ -30,6 +30,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     [Export] public float WobbleMaxAmplitude = 0.08f; // radians (~4.5 degrees)
     [Export] public float WobbleFrequencyRange = 8f;  // Hz base frequency
 
+    [ExportGroup("Powerslide")]
+    [Export] public float SlideYawAngleDeg = 75f;
+    [Export] public float SlideBrakingCoefficient = 3f;
+    [Export] public float SlideSteerFactor = 0.2f;
+    [Export] public float SlideYawSnapSpeed = 10f;
+
     [ExportGroup("Aerodynamics and Friction")]
     [Export] public float AirDensity = 1.225f;      // kg/m³
     [Export] public float DragCoefficient = 1.0f;    // dimensionless
@@ -50,9 +56,13 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     private float _leanRate;    // φ̇ rad/s
     private float _airVelY;     // m/s vertical when airborne
     private float _wobblePhase; // accumulated wobble oscillator phase
+    private bool _isSliding;
+    private float _slideYawOffset;
+    private float _slideDirection;
 
     // Debug-readable state ────────────────────────────────────────────────────
     public bool Grounded { get; private set; }
+    public bool IsSliding => _isSliding;
     public float LeanAngle => _leanAngle;
     public Vector3 CurrentSurfaceNormal { get; private set; }
     public float SlopeAngle { get; private set; }
@@ -90,14 +100,30 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         float tanPivotF = Mathf.Tan(Mathf.DegToRad(FrontPivotAngleDeg));
         float tanPivotR = Mathf.Tan(Mathf.DegToRad(RearPivotAngleDeg));
 
+        // ── Powerslide state ──────────────────────────────────────────────────
+        float leanInput  = Input.GetAxis("Left", "Right");
+        bool slideInput  = Input.IsActionPressed("SpeedRotate") && Mathf.Abs(leanInput) > 0.1f && grounded;
+
+        if (slideInput && !_isSliding)
+        {
+            _isSliding = true;
+            _slideDirection = Mathf.Sign(leanInput);
+        }
+        else if (!slideInput)
+        {
+            _isSliding = false;
+        }
+
+        float slideTargetYaw = _isSliding ? _slideDirection * Mathf.DegToRad(SlideYawAngleDeg) : 0f;
+        _slideYawOffset = Mathf.Lerp(_slideYawOffset, slideTargetYaw, SlideYawSnapSpeed * dt);
+
         // ── Lean-to-steer coupling ────────────────────────────────────────────
-        // Clamp effective speed so steering stays responsive at all velocities
+        float steerFactor = _isSliding ? SlideSteerFactor : 1f;
         float steerSpeed = Mathf.Clamp(_speed, MinSteerSpeed, MaxSteerSpeed);
         float tanLean    = Mathf.Tan(_leanAngle);
-        float yawRate    = -steerSpeed * (tanPivotF + tanPivotR) * tanLean / Wheelbase;
+        float yawRate    = -steerSpeed * (tanPivotF + tanPivotR) * tanLean / Wheelbase * steerFactor;
 
         // ── Lean control ──────────────────────────────────────────────────────
-        float leanInput  = Input.GetAxis("Left", "Right");
         float targetLean = leanInput * Mathf.DegToRad(MaxLeanAngleDeg);
 
         if (grounded)
@@ -132,7 +158,8 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
             float dragComp   = 0.5f * AirDensity * DragCoefficient * FrontalArea
                                * _speed * Mathf.Abs(_speed) / Mass;
             float rollComp   = RollingResistance * gravity * Mathf.Cos(slopeAngle);
-            _speed += (gravComp - dragComp - rollComp) * dt;
+            float slideComp  = _isSliding ? SlideBrakingCoefficient * _speed : 0f;
+            _speed += (gravComp - dragComp - rollComp - slideComp) * dt;
         }
         else
         {
@@ -214,7 +241,8 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 
     private void UpdateOrientation(Vector3 normal, float dt)
     {
-        Vector3 fwdH  = new Vector3(Mathf.Sin(_yaw), 0f, Mathf.Cos(_yaw));
+        float visualYaw = _yaw + _slideYawOffset;
+        Vector3 fwdH  = new Vector3(Mathf.Sin(visualYaw), 0f, Mathf.Cos(visualYaw));
         Vector3 right = fwdH.Cross(normal);
         if (right.LengthSquared() < 1e-4f) return;
         right = right.Normalized();
@@ -248,6 +276,9 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         _yaw        = 0f;
         _airVelY    = 0f;
         _wobblePhase = 0f;
+        _isSliding = false;
+        _slideYawOffset = 0f;
+        _slideDirection = 0f;
     }
 }
 
