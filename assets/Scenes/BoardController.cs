@@ -32,7 +32,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 
     [ExportGroup("Powerslide")]
     [Export] public float SlideYawAngleDeg = 75f;
-    [Export] public float SlideFrictionMultiplier = 8f;
+    [Export] public float SlideBrakingCoefficient = 3f;
     [Export] public float SlideSteerFactor = 0.2f;
     [Export] public float SlideYawSnapSpeed = 10f;
 
@@ -157,9 +157,9 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
             float gravComp   = gravity * Mathf.Sin(slopeAngle);
             float dragComp   = 0.5f * AirDensity * DragCoefficient * FrontalArea
                                * _speed * Mathf.Abs(_speed) / Mass;
-            float slideFriction = _isSliding ? SlideFrictionMultiplier : 1f;
-            float rollComp   = RollingResistance * slideFriction * gravity * Mathf.Cos(slopeAngle);
-            _speed += (gravComp - dragComp - rollComp) * dt;
+            float rollComp   = RollingResistance * gravity * Mathf.Cos(slopeAngle);
+            float slideComp  = _isSliding ? SlideBrakingCoefficient * _speed : 0f;
+            _speed += (gravComp - dragComp - rollComp - slideComp) * dt;
         }
         else
         {
