@@ -44,6 +44,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 
     [ExportGroup("Jump")]
     [Export] public float JumpSpeed = 5f;           // m/s vertical impulse
+    [Export] public float FallGravityMultiplier = 2.5f; // extra gravity when falling
 
     [ExportGroup("Raycasts")]
     [Export] public RayCast3D FrontTruckRay;
@@ -192,7 +193,10 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         else
         {
             if (!jumping)
-                _airVelY -= gravity * dt;
+            {
+                float gravMult = _airVelY < 0f ? FallGravityMultiplier : 1f;
+                _airVelY -= gravity * gravMult * dt;
+            }
             velocity   = fwdWorld * _speed;
             velocity.Y = _airVelY;
         }
