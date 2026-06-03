@@ -42,6 +42,10 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     [Export] public float FrontalArea = 0.5f;        // m²
     [Export] public float RollingResistance = 0.01f; // dimensionless
 
+    [ExportGroup("Airborne Control")]
+    [Export] public float AirSteerRate = 1.5f;      // rad/s, yaw adjustment from Left/Right in air
+    [Export] public float AirSpinRate = 6f;          // rad/s, spin speed when powerslide + direction in air
+
     [ExportGroup("Jump")]
     [Export] public float JumpSpeed = 5f;           // m/s vertical impulse
     [Export] public float FallGravityMultiplier = 2.5f; // extra gravity when falling
@@ -60,6 +64,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     private bool _isSliding;
     private float _slideYawOffset;
     private float _slideDirection;
+    private float _airSpinOffset;
 
     // Debug-readable state ────────────────────────────────────────────────────
     public bool Grounded { get; private set; }
@@ -98,6 +103,9 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         CurrentSurfaceNormal = normal;
 
         // ── Truck pivot angles ────────────────────────────────────────────────
+        if (grounded && _airSpinOffset != 0f)
+            _airSpinOffset = 0f;
+
         float tanPivotF = Mathf.Tan(Mathf.DegToRad(FrontPivotAngleDeg));
         float tanPivotR = Mathf.Tan(Mathf.DegToRad(RearPivotAngleDeg));
 
@@ -147,6 +155,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         {
             _leanRate  *= Mathf.Exp(-8f * dt);
             _leanAngle  = Mathf.Lerp(_leanAngle, 0f, 4f * dt);
+
+            bool airSlideInput = Input.IsActionPressed("SpeedRotate") && Mathf.Abs(leanInput) > 0.1f;
+            if (airSlideInput)
+                _airSpinOffset += leanInput * AirSpinRate * dt;
+            else
+                _yaw += leanInput * AirSteerRate * dt;
         }
 
         // ── Forward speed ─────────────────────────────────────────────────────
@@ -245,7 +259,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 
     private void UpdateOrientation(Vector3 normal, float dt)
     {
-        float visualYaw = _yaw + _slideYawOffset;
+        float visualYaw = _yaw + _slideYawOffset + _airSpinOffset;
         Vector3 fwdH  = new Vector3(Mathf.Sin(visualYaw), 0f, Mathf.Cos(visualYaw));
         Vector3 right = fwdH.Cross(normal);
         if (right.LengthSquared() < 1e-4f) return;
@@ -283,6 +297,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         _isSliding = false;
         _slideYawOffset = 0f;
         _slideDirection = 0f;
+        _airSpinOffset = 0f;
     }
 }
 
