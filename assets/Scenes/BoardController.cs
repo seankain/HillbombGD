@@ -158,9 +158,9 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
 
             bool airSlideInput = Input.IsActionPressed("SpeedRotate") && Mathf.Abs(leanInput) > 0.1f;
             if (airSlideInput)
-                _airSpinOffset += leanInput * AirSpinRate * dt;
+                _airSpinOffset -= leanInput * AirSpinRate * dt;
             else
-                _yaw += leanInput * AirSteerRate * dt;
+                _yaw -= leanInput * AirSteerRate * dt;
         }
 
         // ── Forward speed ─────────────────────────────────────────────────────
