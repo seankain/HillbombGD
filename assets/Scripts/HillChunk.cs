@@ -21,14 +21,11 @@ public partial class HillChunk : Node3D
     public bool Occupied = false;
     [Export]
     public bool IsRespawnChunk = false;
+    [Export]
+    public TrafficSpawner Spawner;
 
     public ChunkTrigger EntryTrigger;
     public ChunkTrigger ExitTrigger;
-
-    //public Waypoint InboundTopWaypoint;
-    //public Waypoint InboundBottomWaypoint;
-    //public Waypoint OutboundTopWaypoint;
-    //public Waypoint OutboundBottomWaypoint;
 
     public event ChunkPassedEventHandler ChunkPassed;
 
@@ -44,12 +41,22 @@ public partial class HillChunk : Node3D
         ExitTrigger.ChunkExited += HandleChunkExit;
     }
 
+    public void InitializeTraffic(TrafficPool pool)
+    {
+        if (Spawner != null)
+            Spawner.Initialize(pool);
+    }
+
     public void CycleObstacles()
     {
-        // foreach (var p in parkedCars)
-        // {
-        //     p.Cycle();
-        // }
+        if (Spawner != null)
+            Spawner.ReturnAllCars();
+    }
+
+    public override void _Process(double delta)
+    {
+        if (!Passed && Spawner != null)
+            Spawner.SpawnTick(delta);
     }
 
     protected virtual void OnChunkPassed(ChunkPassedEventArgs e)
@@ -71,8 +78,4 @@ public partial class HillChunk : Node3D
 
     }
 
-    // // Called every frame. 'delta' is the elapsed time since the previous frame.
-    // public override void _Process(double delta)
-    // {
-    // }
 }

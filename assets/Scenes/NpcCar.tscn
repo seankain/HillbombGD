@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://jacagpmxr6gb" path="res://assets/models/Environment/Vehicles/shitbox.glb" id="1_shitbox"]
+[ext_resource type="Script" path="res://assets/Scripts/NpcCar.cs" id="2_npccar"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_npccar"]
+size = Vector3(5.0, 2.0, 3.0)
+
+[node name="NpcCar" type="AnimatableBody3D"]
+script = ExtResource("2_npccar")
+collision_layer = 4
+collision_mask = 1
+
+[node name="shitbox" parent="." instance=ExtResource("1_shitbox")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 0)
+shape = SubResource("BoxShape3D_npccar")
