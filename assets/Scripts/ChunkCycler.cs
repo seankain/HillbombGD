@@ -53,6 +53,8 @@ public partial class ChunkCycler : Node3D
 	public Node3D Player;
 	[Export]
 	public BoardController playerController;
+	[Export]
+	public TrafficPool TrafficPool;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -82,6 +84,14 @@ public partial class ChunkCycler : Node3D
 		//playerController = Player.GetChild<Ball>(0);
 		// playerController = Player.GetComponent<BoardControllerBase>();
 		playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
+
+		if (TrafficPool != null)
+		{
+			foreach (var chunk in ChunkPool)
+			{
+				chunk.InitializeTraffic(TrafficPool);
+			}
+		}
 	}
 
 	private void HandleChunkPassed(object sender, ChunkPassedEventArgs e)
@@ -116,6 +126,7 @@ public partial class ChunkCycler : Node3D
 
 	private void ChunkCycler_PlayerRespawned(object sender, PlayerRespawnArgs e)
 	{
+		TrafficPool?.ReturnAll();
 		ResetChunks();
 	}
 
