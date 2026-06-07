@@ -65,9 +65,7 @@ public partial class NpcCar : AnimatableBody3D
 		Visible = false;
 		ProcessMode = ProcessModeEnum.Disabled;
 		SetPhysicsProcess(false);
-		var collision = this.GetChildByType<CollisionShape3D>();
-		if (collision != null)
-			collision.Disabled = true;
+		SetCollisionEnabled(false);
 	}
 
 	public void Enable()
@@ -75,8 +73,15 @@ public partial class NpcCar : AnimatableBody3D
 		Visible = true;
 		ProcessMode = ProcessModeEnum.Always;
 		SetPhysicsProcess(true);
-		var collision = this.GetChildByType<CollisionShape3D>();
-		if (collision != null)
-			collision.Disabled = false;
+		SetCollisionEnabled(true);
+	}
+
+	private void SetCollisionEnabled(bool enabled)
+	{
+		foreach (var child in GetChildren())
+		{
+			if (child is CollisionShape3D shape)
+				shape.Disabled = !enabled;
+		}
 	}
 }

@@ -85,12 +85,9 @@ public partial class ChunkCycler : Node3D
 		// playerController = Player.GetComponent<BoardControllerBase>();
 		playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
 
-		if (TrafficPool != null)
+		foreach (var chunk in ChunkPool)
 		{
-			foreach (var chunk in ChunkPool)
-			{
-				chunk.InitializeTraffic(TrafficPool);
-			}
+			chunk.InitializeTraffic(TrafficPool);
 		}
 	}
 
@@ -126,7 +123,17 @@ public partial class ChunkCycler : Node3D
 
 	private void ChunkCycler_PlayerRespawned(object sender, PlayerRespawnArgs e)
 	{
-		TrafficPool?.ReturnAll();
+		if (TrafficPool != null)
+		{
+			TrafficPool.ReturnAll();
+		}
+		else
+		{
+			foreach (var chunk in ChunkPool)
+			{
+				chunk.CycleObstacles();
+			}
+		}
 		ResetChunks();
 	}
 

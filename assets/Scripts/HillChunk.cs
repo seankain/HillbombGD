@@ -43,7 +43,13 @@ public partial class HillChunk : Node3D
 
     public void InitializeTraffic(TrafficPool pool)
     {
-        if (Spawner != null)
+        if (Spawner == null)
+            return;
+
+        if (pool == null)
+            pool = this.GetChildByType<TrafficPool>();
+
+        if (pool != null)
             Spawner.Initialize(pool);
     }
 
