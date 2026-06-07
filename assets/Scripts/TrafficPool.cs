@@ -32,7 +32,9 @@ public partial class TrafficPool : Node3D
 	public NpcCar Checkout()
 	{
 		if (_available.Count == 0)
+		{
 			return null;
+		}
 
 		var car = _available.Pop();
 		_active.Add(car);
@@ -43,7 +45,9 @@ public partial class TrafficPool : Node3D
 	public void Return(NpcCar car)
 	{
 		if (!_active.Contains(car))
+		{
 			return;
+		}
 
 		car.Reset();
 		car.Disable();

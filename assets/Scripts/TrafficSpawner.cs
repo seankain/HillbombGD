@@ -44,12 +44,17 @@ public partial class TrafficSpawner : Node3D
 	public void SpawnTick(double delta)
 	{
 		if (_pool == null || TrafficPaths == null)
+		{
 			return;
+		}
 
 		for (int i = 0; i < TrafficPaths.Length; i++)
 		{
 			if (TrafficPaths[i] == null)
+			{
+				GD.PrintErr("No traffic paths exist for traffic spawner");
 				continue;
+			}
 
 			_spawnTimers[i] -= (float)delta;
 			if (_spawnTimers[i] <= 0f)
@@ -58,7 +63,9 @@ public partial class TrafficSpawner : Node3D
 
 				var car = _pool.Checkout();
 				if (car == null)
+				{
 					continue;
+				}
 
 				var chunk = GetParent<HillChunk>();
 				float speed = _rng.RandfRange(MinCarSpeed, MaxCarSpeed);
