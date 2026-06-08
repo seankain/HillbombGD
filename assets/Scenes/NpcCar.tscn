@@ -4,10 +4,10 @@
 [ext_resource type="Script" uid="uid://2km1ub60wyjf" path="res://assets/Scripts/NpcCar.cs" id="2_npccar"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_npccar"]
-size = Vector3(4.5, 2, 9.900001)
+size = Vector3(3.6000001, 2, 6.9)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_eamsb"]
-size = Vector3(4.7000003, 1.2, 5.4)
+size = Vector3(4.7000003, 0.3, 2.7)
 
 [node name="NpcCar" type="AnimatableBody3D" unique_id=1700320761]
 collision_layer = 4
@@ -17,9 +17,9 @@ script = ExtResource("2_npccar")
 transform = Transform3D(-2.1855694e-08, 0, 0.5, 0, 0.5, 0, -0.5, 0, -2.1855694e-08, 1.5999999, 0, 2.5)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1457044465]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15000057, 0.4000001, 3.3500004)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.29999936, 0.4000001, 1.8500001)
 shape = SubResource("BoxShape3D_npccar")
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="." unique_id=885233149]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14999986, 1.9000001, 2.7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14999986, 1.45, 2.35)
 shape = SubResource("BoxShape3D_eamsb")
