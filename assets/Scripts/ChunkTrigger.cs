@@ -69,13 +69,15 @@ public partial class ChunkTrigger : Area3D
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.BodyEntered += (o) =>
+		this.BodyEntered += (body) =>
 		{
-			OnChunkEntered(new ChunkTransitEventArgs());
+			if (body.IsInGroup("Player"))
+				OnChunkEntered(new ChunkTransitEventArgs());
 		};
-		this.BodyExited += (o) =>
+		this.BodyExited += (body) =>
 		{
-			OnChunkExited(new ChunkTransitEventArgs());
+			if (body.IsInGroup("Player"))
+				OnChunkExited(new ChunkTransitEventArgs());
 		};
 	}
 

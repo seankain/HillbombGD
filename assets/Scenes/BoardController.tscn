@@ -41,7 +41,7 @@ _data = {
 &"TurnRight": SubResource("Animation_uuk71")
 }
 
-[node name="BoardController" type="CharacterBody3D" unique_id=756686935 node_paths=PackedStringArray("FrontTruckRay", "RearTruckRay")]
+[node name="BoardController" type="CharacterBody3D" unique_id=756686935 node_paths=PackedStringArray("FrontTruckRay", "RearTruckRay") groups=["Player"]]
 floor_block_on_wall = false
 floor_max_angle = 1.309
 floor_snap_length = 0.26
