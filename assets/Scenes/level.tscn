@@ -5,6 +5,8 @@
 [ext_resource type="PackedScene" uid="uid://c2wotjcw6i6qq" path="res://assets/Scenes/BoardController.tscn" id="4_20puj"]
 [ext_resource type="Shader" uid="uid://dvyb0iulrdjdg" path="res://assets/materials/cartoonwater.gdshader" id="4_guno6"]
 [ext_resource type="PackedScene" uid="uid://ppi68pxhxesa" path="res://assets/Scenes/Debug/DebugHud.tscn" id="5_i5gl0"]
+[ext_resource type="Script" uid="uid://pg56adpv6qbo" path="res://assets/Scripts/TrafficPool.cs" id="6_do663"]
+[ext_resource type="PackedScene" uid="uid://bnkgpyjloynji" path="res://assets/Scenes/NpcCar.tscn" id="7_htp6r"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_57r8s"]
 sky_top_color = Color(0.163067, 0.363137, 1, 1)
@@ -90,10 +92,11 @@ size = Vector2(2000, 2000)
 
 [node name="Level" type="Node3D" unique_id=2058151846]
 
-[node name="HillChunks" type="Node3D" parent="." unique_id=1831514362 node_paths=PackedStringArray("Player", "playerController")]
+[node name="HillChunks" type="Node3D" parent="." unique_id=1831514362 node_paths=PackedStringArray("Player", "playerController", "TrafficPool")]
 script = ExtResource("1_xfd5p")
 Player = NodePath("../BoardController")
 playerController = NodePath("../BoardController")
+TrafficPool = NodePath("../TrafficPool")
 
 [node name="HillChunk" parent="HillChunks" unique_id=1859208055 instance=ExtResource("1_wcm61")]
 unique_name_in_owner = true
@@ -136,3 +139,7 @@ RollingResistance = 0.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -108, 0)
 material_override = SubResource("ShaderMaterial_se5ev")
 mesh = SubResource("QuadMesh_do663")
+
+[node name="TrafficPool" type="Node3D" parent="." unique_id=1676300259]
+script = ExtResource("6_do663")
+NpcCarScene = ExtResource("7_htp6r")
