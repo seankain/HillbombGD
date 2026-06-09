@@ -23,16 +23,14 @@ public partial class HillChunk : Node3D
     public bool IsRespawnChunk = false;
     [Export]
     public TrafficSpawner Spawner;
+    [Export]
+    public TrafficLightController LightController;
 
     public ChunkTrigger EntryTrigger;
     public ChunkTrigger ExitTrigger;
 
     public event ChunkPassedEventHandler ChunkPassed;
 
-    //[SerializeField]
-    //private ParkedCar[] parkedCars;
-
-    // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         EntryTrigger = EntryTriggerArea as ChunkTrigger;
@@ -41,10 +39,14 @@ public partial class HillChunk : Node3D
         ExitTrigger.ChunkExited += HandleChunkExit;
     }
 
-    public void InitializeTraffic(TrafficPool pool)
+    public void InitializeTraffic(TrafficPool pool, TrafficSimulator simulator = null)
     {
         if (Spawner != null && pool != null)
-            Spawner.Initialize(pool);
+        {
+            Spawner.Initialize(pool, simulator);
+            if (LightController != null)
+                Spawner.SetLightController(LightController);
+        }
     }
 
     public void CycleObstacles()
@@ -65,7 +67,6 @@ public partial class HillChunk : Node3D
         handler?.Invoke(this, e);
     }
 
-
     void HandleChunkEnter(object sender, ChunkTransitEventArgs e)
     {
         Occupied = true;
@@ -75,7 +76,5 @@ public partial class HillChunk : Node3D
         Passed = true;
         Occupied = false;
         OnChunkPassed(new ChunkPassedEventArgs { PassedChunk = this });
-
     }
-
 }
