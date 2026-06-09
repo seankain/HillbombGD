@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://yky24s2kse7d"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_ektyb"]
+
+[node name="TrafficSignal" type="Node3D" unique_id=1703804742]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1051722511]
+transform = Transform3D(0.655, 0, 0, 0, 0.25, 0, 0, 0, 0.225, 0, 0, 0)
+mesh = SubResource("BoxMesh_ektyb")
