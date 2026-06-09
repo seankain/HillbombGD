@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://byfyafae7qwo2" path="res://assets/models/Environment/Buildings/Prefab/House4.tscn" id="16_sgxsd"]
 [ext_resource type="PackedScene" uid="uid://bymc4e6ft43ia" path="res://assets/models/Environment/Obstacles/tree1.tscn" id="18_i3o57"]
 [ext_resource type="Script" uid="uid://cancwvqkx5mm4" path="res://assets/Scripts/TrafficSpawner.cs" id="19_sed2y"]
+[ext_resource type="Script" path="res://assets/Scripts/TrafficLightController.cs" id="20_tlc"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -72,13 +73,14 @@ _data = {
 }
 point_count = 5
 
-[node name="HillChunk" type="Node3D" unique_id=1417364097 node_paths=PackedStringArray("ChunkStart", "ChunkEnd", "EntryTriggerArea", "ExitTriggerArea", "Spawner") groups=["Chunks"]]
+[node name="HillChunk" type="Node3D" unique_id=1417364097 node_paths=PackedStringArray("ChunkStart", "ChunkEnd", "EntryTriggerArea", "ExitTriggerArea", "Spawner", "LightController") groups=["Chunks"]]
 script = ExtResource("1_j880e")
 ChunkStart = NodePath("ChunkTop")
 ChunkEnd = NodePath("ChunkBottom")
 EntryTriggerArea = NodePath("ChunkTop/Area3D")
 ExitTriggerArea = NodePath("ChunkBottom/Area3D")
 Spawner = NodePath("TrafficSpawner")
+LightController = NodePath("Intersection/TrafficLightController")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1332214995]
 transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -59, 50)
@@ -212,6 +214,13 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -8, 
 
 [node name="IntersectionLeftTrafficSignal" parent="Intersection" unique_id=1973241544 instance=ExtResource("11_sed2y")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 8, 4, 0)
+
+[node name="TrafficLightController" type="Node3D" parent="Intersection" node_paths=PackedStringArray("StraightOutgoing", "StraightIncoming", "CrossRight", "CrossLeft")]
+script = ExtResource("20_tlc")
+StraightOutgoing = NodePath("../OutgoingStraightTrafficSignal")
+StraightIncoming = NodePath("../IncomingStraightTrafficSignal")
+CrossRight = NodePath("../IntersectionRightTrafficSignal")
+CrossLeft = NodePath("../IntersectionLeftTrafficSignal")
 
 [node name="House1" parent="." unique_id=681277604 instance=ExtResource("9_qvyfe")]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 12.3, -13.3, 45.4)

@@ -12,6 +12,7 @@ public partial class TrafficPool : Node3D
 
 	private Stack<NpcCar> _available;
 	private HashSet<NpcCar> _active;
+	private TrafficSimulator _simulator;
 
 	public override void _Ready()
 	{
@@ -29,6 +30,11 @@ public partial class TrafficPool : Node3D
 		}
 	}
 
+	public void SetSimulator(TrafficSimulator simulator)
+	{
+		_simulator = simulator;
+	}
+
 	public NpcCar Checkout()
 	{
 		if (_available.Count == 0)
@@ -39,6 +45,8 @@ public partial class TrafficPool : Node3D
 		var car = _available.Pop();
 		_active.Add(car);
 		car.Enable();
+		if (_simulator != null)
+			car.SetSimulator(_simulator);
 		return car;
 	}
 

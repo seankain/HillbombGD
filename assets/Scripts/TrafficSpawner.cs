@@ -20,13 +20,16 @@ public partial class TrafficSpawner : Node3D
 	public float MaxCarSpeed = 15.0f;
 
 	private TrafficPool _pool;
+	private TrafficSimulator _simulator;
+	private TrafficLightController _lightController;
 	private List<NpcCar> _activeCars;
 	private float[] _spawnTimers;
 	private RandomNumberGenerator _rng;
 
-	public void Initialize(TrafficPool pool)
+	public void Initialize(TrafficPool pool, TrafficSimulator simulator = null)
 	{
 		_pool = pool;
+		_simulator = simulator;
 		_activeCars = new List<NpcCar>();
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
@@ -39,6 +42,11 @@ public partial class TrafficSpawner : Node3D
 				_spawnTimers[i] = _rng.RandfRange(MinSpawnInterval, MaxSpawnInterval);
 			}
 		}
+	}
+
+	public void SetLightController(TrafficLightController controller)
+	{
+		_lightController = controller;
 	}
 
 	public void SpawnTick(double delta)
@@ -61,6 +69,16 @@ public partial class TrafficSpawner : Node3D
 			{
 				_spawnTimers[i] = _rng.RandfRange(MinSpawnInterval, MaxSpawnInterval);
 
+				if (_simulator != null && !_simulator.CanSpawnOnPath(TrafficPaths[i], 0f))
+					continue;
+
+				if (_lightController != null)
+				{
+					var lightState = _lightController.GetStateForPath(TrafficPaths[i]);
+					if (lightState == TrafficLightState.Red)
+						continue;
+				}
+
 				var car = _pool.Checkout();
 				if (car == null)
 				{
@@ -70,6 +88,10 @@ public partial class TrafficSpawner : Node3D
 				var chunk = GetParent<HillChunk>();
 				float speed = _rng.RandfRange(MinCarSpeed, MaxCarSpeed);
 				car.Activate(TrafficPaths[i], chunk, speed);
+
+				if (_lightController != null)
+					car.SetLightController(_lightController);
+
 				_activeCars.Add(car);
 			}
 		}

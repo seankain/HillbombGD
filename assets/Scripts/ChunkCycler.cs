@@ -56,6 +56,8 @@ public partial class ChunkCycler : Node3D
 	[Export]
 	public TrafficPool TrafficPool;
 
+	private TrafficSimulator _trafficSimulator;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -69,27 +71,21 @@ public partial class ChunkCycler : Node3D
 				((HillChunk)c).ChunkPassed += HandleChunkPassed;
 				ChunkPool.Add(c as HillChunk);
 			}
-			// var hc = c.GetChildByType<HillChunk>();
-			// if (hc != null)
-			// {
-			// 	ChunkPool.Add(hc);
-			// }
 		}
 		FrontPool = new List<HillChunk>();
 		PassedPool = new Queue<HillChunk>();
 		FrontPool.AddRange(ChunkPool);
-		//TODO rewire player respawn event
-		//var playerControllerTree = playerController.GetTree();
-		//playerController = Player.GetScript().As<Ball>();
-		//playerController = Player.GetChild<Ball>(0);
-		// playerController = Player.GetComponent<BoardControllerBase>();
 		playerController.PlayerRespawned += ChunkCycler_PlayerRespawned;
+
+		_trafficSimulator = new TrafficSimulator();
+		AddChild(_trafficSimulator);
 
 		if (TrafficPool != null)
 		{
+			TrafficPool.SetSimulator(_trafficSimulator);
 			foreach (var chunk in ChunkPool)
 			{
-				chunk.InitializeTraffic(TrafficPool);
+				chunk.InitializeTraffic(TrafficPool, _trafficSimulator);
 			}
 		}
 	}
@@ -106,8 +102,6 @@ public partial class ChunkCycler : Node3D
 		{
 			if (chunk.Occupied && chunk.IsPositionResetChunk)
 			{
-				//Going to move all of the chunks back to around zero to avoid floating point issues from sustained play
-				//var pos = chunk.gameObject.transform.position;
 				var pos = chunk.GlobalPosition;
 				var distance = pos.DistanceTo(Vector3.Zero);
 				foreach (var c in ChunkPool)
@@ -117,10 +111,6 @@ public partial class ChunkCycler : Node3D
 				Player.GlobalPosition -= pos;
 				MoveObstacles(chunk, pos);
 			}
-			// if (chunk.Passed)
-			// {
-			// 	MoveChunk(chunk);
-			// }
 		}
 	}
 
@@ -176,7 +166,6 @@ public partial class ChunkCycler : Node3D
 			{
 				if (direction == TravelDirection.Inbound)
 				{
-					//Go forward in z axis since chunks progress in z axis and inbound is positive on z
 					if (i + 1 <= sortedChunks.Length - 1)
 					{
 						neighborChunk = sortedChunks[i + 1];
@@ -185,7 +174,6 @@ public partial class ChunkCycler : Node3D
 				}
 				else
 				{
-					//Go backward in z axis
 					if (i - 1 >= 0)
 					{
 						neighborChunk = sortedChunks[i - 1];
@@ -200,9 +188,6 @@ public partial class ChunkCycler : Node3D
 
 	void MoveChunk(HillChunk chunk)
 	{
-		// Didn't want the immediate rear chunk to be 
-		// moved because it was too obvious during play
-		// and will probably keep allowing camera to look back
 		PassedPool.Enqueue(chunk);
 		if (PassedPool.Count > 1)
 		{
@@ -212,13 +197,9 @@ public partial class ChunkCycler : Node3D
 		var minChunkEnd = FindMinChunkEnd();
 		var dist = chunk.ChunkStart.GlobalPosition - minChunkEnd;
 		chunk.GlobalPosition = (chunk.GlobalPosition - dist);
-		//Debug.Log($"Moving {chunk.name} to  {chunk.transform.position}");
 		GD.Print($"Moving {chunk.Name} from passed pool to {chunk.GlobalPosition}");
 		chunk.Passed = false;
-		//WaterPlane.transform.position = new Vector3(WaterPlane.transform.position.x, minChunkEnd.y - WaterPlaneOffset, WaterPlane.transform.position.z);
 		MoveObstacles(chunk, dist);
-		//TODO fix water plane
-		//StartCoroutine(LowerWaterPlane());
 		chunk.CycleObstacles();
 	}
 
@@ -226,11 +207,8 @@ public partial class ChunkCycler : Node3D
 	{
 		var dist = chunk.ChunkStart.GlobalPosition - position;
 		chunk.GlobalPosition = (chunk.GlobalPosition - dist);
-		//Debug.Log($"Moving {chunk.name} to  {chunk.transform.position}");
 		chunk.Passed = false;
-		//WaterPlane.transform.position = new Vector3(WaterPlane.transform.position.x, minChunkEnd.y - WaterPlaneOffset, WaterPlane.transform.position.z);
 		MoveObstacles(chunk, dist);
-		//Coroutines.StartCoroutine((System.Collections.IEnumerable)LowerWaterPlane());
 		chunk.CycleObstacles();
 	}
 
@@ -246,26 +224,15 @@ public partial class ChunkCycler : Node3D
 				minChunk = c;
 			}
 		}
-		//Debug.Log($"Min chunk is {minChunk.gameObject.name} at {min}");
 		return min;
 	}
 
 	private void MoveObstacles(HillChunk chunk, Vector3 dist)
 	{
 		var pos = chunk.GlobalPosition;
-		//TODO this group isnt being populated yet so when there arent
-		//any to be found this is why
 		var moveableObstacles = GetTree().GetNodesInGroup("MovableObstacles");
-		//var npcVehicles = FindObjectsOfType<NpcVehicle>();
 		foreach (var moveableObstacle in moveableObstacles)
 		{
-			//TODO havent moved over any obstacle scripts yet 
-			// var npcVehicle = moveableObstacle.GetChild<NpcVehicle>();
-			// if (npcVehicle.CurrentChunk == chunk)
-			// {
-
-			// 	npcVehicle.transform.position = (npcVehicle.transform.position - dist);
-			// }
 		}
 	}
 
@@ -275,7 +242,6 @@ public partial class ChunkCycler : Node3D
 		while (WaterPlane.GlobalPosition.Y > min.Y - WaterPlaneOffset)
 		{
 			WaterPlane.GlobalPosition.MoveToward(min, (float)this.GetPhysicsProcessDeltaTime() * 5f);
-			//WaterPlane.GlobalPosition = Vector3.MoveTowards(WaterPlane.GlobalPosition, min, Time.deltaTime * 5f);
 			yield return null;
 		}
 	}
