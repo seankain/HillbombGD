@@ -90,6 +90,16 @@ public partial class ChunkCycler : Node3D
 		}
 	}
 
+	public TrafficWaypoint FindEntryWaypoint(HillChunk chunk, string laneId)
+	{
+		foreach (var child in chunk.GetChildren())
+		{
+			if (child is TrafficWaypoint wp && wp.LaneId == laneId && wp.IsSpawnPoint)
+				return wp;
+		}
+		return null;
+	}
+
 	private void HandleChunkPassed(object sender, ChunkPassedEventArgs e)
 	{
 		MoveChunk(e.PassedChunk);

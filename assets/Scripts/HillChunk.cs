@@ -23,8 +23,6 @@ public partial class HillChunk : Node3D
     public bool IsRespawnChunk = false;
     [Export]
     public TrafficSpawner Spawner;
-    [Export]
-    public TrafficLightController LightController;
 
     public ChunkTrigger EntryTrigger;
     public ChunkTrigger ExitTrigger;
@@ -42,11 +40,7 @@ public partial class HillChunk : Node3D
     public void InitializeTraffic(TrafficPool pool, TrafficSimulator simulator = null)
     {
         if (Spawner != null && pool != null)
-        {
             Spawner.Initialize(pool, simulator);
-            if (LightController != null)
-                Spawner.SetLightController(LightController);
-        }
     }
 
     public void CycleObstacles()

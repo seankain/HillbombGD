@@ -1,11 +1,10 @@
 using Godot;
-using System;
 using System.Collections.Generic;
 
 public partial class TrafficSpawner : Node3D
 {
 	[Export]
-	public Path3D[] TrafficPaths;
+	public TrafficWaypoint[] SpawnPoints;
 
 	[Export]
 	public float MinSpawnInterval = 2.0f;
@@ -21,7 +20,6 @@ public partial class TrafficSpawner : Node3D
 
 	private TrafficPool _pool;
 	private TrafficSimulator _simulator;
-	private TrafficLightController _lightController;
 	private List<NpcCar> _activeCars;
 	private float[] _spawnTimers;
 	private RandomNumberGenerator _rng;
@@ -34,9 +32,9 @@ public partial class TrafficSpawner : Node3D
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
 
-		if (TrafficPaths != null)
+		if (SpawnPoints != null)
 		{
-			_spawnTimers = new float[TrafficPaths.Length];
+			_spawnTimers = new float[SpawnPoints.Length];
 			for (int i = 0; i < _spawnTimers.Length; i++)
 			{
 				_spawnTimers[i] = _rng.RandfRange(MinSpawnInterval, MaxSpawnInterval);
@@ -44,54 +42,37 @@ public partial class TrafficSpawner : Node3D
 		}
 	}
 
-	public void SetLightController(TrafficLightController controller)
-	{
-		_lightController = controller;
-	}
-
 	public void SpawnTick(double delta)
 	{
-		if (_pool == null || TrafficPaths == null)
-		{
+		if (_pool == null || SpawnPoints == null)
 			return;
-		}
 
-		for (int i = 0; i < TrafficPaths.Length; i++)
+		for (int i = 0; i < SpawnPoints.Length; i++)
 		{
-			if (TrafficPaths[i] == null)
-			{
-				GD.PrintErr("No traffic paths exist for traffic spawner");
+			if (SpawnPoints[i] == null)
 				continue;
-			}
 
 			_spawnTimers[i] -= (float)delta;
 			if (_spawnTimers[i] <= 0f)
 			{
 				_spawnTimers[i] = _rng.RandfRange(MinSpawnInterval, MaxSpawnInterval);
 
-				if (_simulator != null && !_simulator.CanSpawnOnPath(TrafficPaths[i], 0f))
+				var wp = SpawnPoints[i];
+
+				if (_simulator != null && !_simulator.CanSpawnAt(wp.GlobalPosition))
 					continue;
 
-				if (_lightController != null)
-				{
-					var lightState = _lightController.GetStateForPath(TrafficPaths[i]);
-					if (lightState == TrafficLightState.Red)
-						continue;
-				}
+				if (wp.IsStopLine && wp.StopLight != null &&
+					wp.StopLight.State == TrafficLightState.Red)
+					continue;
 
 				var car = _pool.Checkout();
 				if (car == null)
-				{
 					continue;
-				}
 
 				var chunk = GetParent<HillChunk>();
 				float speed = _rng.RandfRange(MinCarSpeed, MaxCarSpeed);
-				car.Activate(TrafficPaths[i], chunk, speed);
-
-				if (_lightController != null)
-					car.SetLightController(_lightController);
-
+				car.Activate(wp, chunk, speed);
 				_activeCars.Add(car);
 			}
 		}
