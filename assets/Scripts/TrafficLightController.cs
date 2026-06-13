@@ -1,5 +1,4 @@
 using Godot;
-using System;
 
 public partial class TrafficLightController : Node3D
 {
@@ -115,19 +114,5 @@ public partial class TrafficLightController : Node3D
 	{
 		CrossRight?.SetState(state);
 		CrossLeft?.SetState(state);
-	}
-
-	public TrafficLightState GetStateForPath(Path3D path)
-	{
-		string name = path.Name;
-		if (name.Contains("ThruPath") || name.Contains("Thru"))
-		{
-			return StraightOutgoing?.State ?? TrafficLightState.Green;
-		}
-		if (name.Contains("Intersection"))
-		{
-			return CrossRight?.State ?? TrafficLightState.Green;
-		}
-		return TrafficLightState.Green;
 	}
 }

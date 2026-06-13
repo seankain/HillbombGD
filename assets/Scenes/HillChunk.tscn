@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" uid="uid://bymc4e6ft43ia" path="res://assets/models/Environment/Obstacles/tree1.tscn" id="18_i3o57"]
 [ext_resource type="Script" uid="uid://cancwvqkx5mm4" path="res://assets/Scripts/TrafficSpawner.cs" id="19_sed2y"]
 [ext_resource type="Script" path="res://assets/Scripts/TrafficLightController.cs" id="20_tlc"]
+[ext_resource type="Script" path="res://assets/Scripts/TrafficWaypoint.cs" id="21_twp"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -32,56 +33,14 @@ data = PackedVector3Array(-13.3826, -0.6065, -14.0363, 14.6873, -0.2002, -14.036
 [sub_resource type="BoxShape3D" id="BoxShape3D_gngta"]
 size = Vector3(50, 50, 3)
 
-[sub_resource type="Curve3D" id="Curve3D_sed2y"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -1.10161, -28.299, 122.419, 0, 0, 0, 0, 0, 0, 0, -29, 95, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 39.6844, 0.6756, 0.0330963, 0, 0, 0, 0, 0, 0, 48.3074, -1.05649, 0.727005),
-"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
-}
-point_count = 5
 
-[sub_resource type="Curve3D" id="Curve3D_wnxse"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0.003, 0.001, 0, 0, 0, 0, 0, 0, 0, 0, -28, 94, 0, 0, 0, 0, 0, 0, -1, -29, 122),
-"tilts": PackedFloat32Array(0, 0, 0)
-}
-point_count = 3
-
-[sub_resource type="Curve3D" id="Curve3D_rtmc7"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -3.42633, -29.0101, 104.659, 0, 0, 0, 0, 0, 0, -3.65698, -29.0104, 107.45, 0, 0, 0, 0, 0, 0, -6, -29, 107.5, 0, 0, 0, 0, 0, 0, -9.21395, -29.0026, 107.526, 0, 0, 0, 0, 0, 0, -13, -29, 107.5, 0, 0, 0, 0, 0, 0, -50.6684, -28.416, 106.704),
-"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0)
-}
-point_count = 6
-
-[sub_resource type="Curve3D" id="Curve3D_b0onn"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -50.73, -29, 113.36, 0, 0, 0, 0, 0, 0, -6, -29, 113.275, 0, 0, 0, 0, 0, 0, -3.426, -29.01, 114.364),
-"tilts": PackedFloat32Array(0, 0, 0)
-}
-point_count = 3
-
-[sub_resource type="Curve3D" id="Curve3D_oxrhu"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 51.5166, -29.0153, 105.982, 0, 0, 0, 0, 0, 0, 14.1941, -29.0559, 106.814, 0, 0, 0, 0, 0, 0, 8.13613, -29.0349, 106.559, 0, 0, 0, 0, 0, 0, 4.76001, -29.0279, 106.483, 0, 0, 0, 0, 0, 0, 2.36439, -28.8948, 104.618),
-"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
-}
-point_count = 5
-
-[sub_resource type="Curve3D" id="Curve3D_wx5ig"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 2.251, -29.035, 114.784, 0, 0, 0, 0, 0, 0, 4.806, -29.035, 111.409, 0, 0, 0, 0, 0, 0, 8.136, -29.035, 111.409, 0, 0, 0, 0, 0, 0, 14.194, -29.056, 111.259, 0, 0, 0, 0, 0, 0, 51.517, -29.015, 111.712),
-"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
-}
-point_count = 5
-
-[node name="HillChunk" type="Node3D" unique_id=1417364097 node_paths=PackedStringArray("ChunkStart", "ChunkEnd", "EntryTriggerArea", "ExitTriggerArea", "Spawner", "LightController") groups=["Chunks"]]
+[node name="HillChunk" type="Node3D" unique_id=1417364097 node_paths=PackedStringArray("ChunkStart", "ChunkEnd", "EntryTriggerArea", "ExitTriggerArea", "Spawner") groups=["Chunks"]]
 script = ExtResource("1_j880e")
 ChunkStart = NodePath("ChunkTop")
 ChunkEnd = NodePath("ChunkBottom")
 EntryTriggerArea = NodePath("ChunkTop/Area3D")
 ExitTriggerArea = NodePath("ChunkBottom/Area3D")
 Spawner = NodePath("TrafficSpawner")
-LightController = NodePath("Intersection/TrafficLightController")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1332214995]
 transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -59, 50)
@@ -329,32 +288,104 @@ transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -
 [node name="House13" parent="." unique_id=1325308349 instance=ExtResource("16_sgxsd")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -12, -20.6, 78)
 
-[node name="OnComingTrafficThruPath" type="Path3D" parent="." unique_id=1099669750]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
-curve = SubResource("Curve3D_sed2y")
+[node name="OncomingEntry" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -28, 122)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../OncomingStop")]
+IsSpawnPoint = true
+LaneId = "OncomingThru"
 
-[node name="OutgoigTrafficThruPath" type="Path3D" parent="." unique_id=559201418]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
-curve = SubResource("Curve3D_wnxse")
+[node name="OncomingStop" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints", "StopLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -29, 115)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../OncomingMid")]
+IsStopLine = true
+StopLight = NodePath("../Intersection/IncomingStraightTrafficSignal")
 
-[node name="OncomingIntersectionRightPath" type="Path3D" parent="." unique_id=2113836567]
-curve = SubResource("Curve3D_rtmc7")
+[node name="OncomingMid" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -14, 50)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../OncomingExit")]
 
-[node name="OutgoingInersectionLeftPath" type="Path3D" parent="." unique_id=163706518]
-curve = SubResource("Curve3D_b0onn")
+[node name="OncomingExit" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, 0)
+script = ExtResource("21_twp")
+LaneId = "OncomingThru"
 
-[node name="IntersectionLeftPath" type="Path3D" parent="." unique_id=324216554]
-curve = SubResource("Curve3D_oxrhu")
+[node name="OutgoingEntry" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1, 0)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../OutgoingMid")]
+IsSpawnPoint = true
+LaneId = "OutgoingThru"
 
-[node name="IntersectionRightPath" type="Path3D" parent="." unique_id=1399220951]
-curve = SubResource("Curve3D_wx5ig")
+[node name="OutgoingMid" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -14, 50)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../OutgoingStop")]
+
+[node name="OutgoingStop" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints", "StopLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -27, 95)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../OutgoingExit")]
+IsStopLine = true
+StopLight = NodePath("../Intersection/OutgoingStraightTrafficSignal")
+
+[node name="OutgoingExit" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -28, 122)
+script = ExtResource("21_twp")
+LaneId = "OutgoingThru"
+
+[node name="CrossRightEntry" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, -29, 107)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../CrossRightStop")]
+IsSpawnPoint = true
+
+[node name="CrossRightStop" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints", "StopLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -29, 107)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../CrossRightCenter")]
+IsStopLine = true
+StopLight = NodePath("../Intersection/IntersectionRightTrafficSignal")
+
+[node name="CrossRightCenter" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -29, 107)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../CrossRightExit"), NodePath("../OncomingMid")]
+
+[node name="CrossRightExit" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, -29, 107)
+script = ExtResource("21_twp")
+
+[node name="CrossLeftEntry" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, -29, 113)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../CrossLeftStop")]
+IsSpawnPoint = true
+
+[node name="CrossLeftStop" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints", "StopLight")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -29, 113)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../CrossLeftCenter")]
+IsStopLine = true
+StopLight = NodePath("../Intersection/IntersectionLeftTrafficSignal")
+
+[node name="CrossLeftCenter" type="Node3D" parent="." node_paths=PackedStringArray("NextWaypoints")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -29, 113)
+script = ExtResource("21_twp")
+NextWaypoints = [NodePath("../CrossLeftExit"), NodePath("../OutgoingStop")]
+
+[node name="CrossLeftExit" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, -29, 113)
+script = ExtResource("21_twp")
 
 [node name="Tree1" parent="." unique_id=1084456319 instance=ExtResource("18_i3o57")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -9.8, 34)
 
-[node name="TrafficSpawner" type="Node3D" parent="." unique_id=85039066 node_paths=PackedStringArray("TrafficPaths")]
+[node name="TrafficSpawner" type="Node3D" parent="." unique_id=85039066 node_paths=PackedStringArray("SpawnPoints")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.51660156, -21.0153, 105.982)
 script = ExtResource("19_sed2y")
-TrafficPaths = [NodePath("../OnComingTrafficThruPath"), NodePath("../OutgoigTrafficThruPath"), NodePath("../OncomingIntersectionRightPath"), NodePath("../IntersectionLeftPath")]
+SpawnPoints = [NodePath("../OncomingEntry"), NodePath("../OutgoingEntry"), NodePath("../CrossRightEntry"), NodePath("../CrossLeftEntry")]
 
 [editable path="Street/street_apron"]

@@ -2,9 +2,9 @@
 
 ## Overview
 
-The traffic system spawns NPC cars from an object pool, drives them along Path3D curves within terrain chunks, and returns them to the pool when they reach the end of their path. Cars serve as the primary mobile obstacle the player must dodge while skateboarding downhill.
+The traffic system spawns NPC cars from an object pool, drives them along a directed waypoint graph within terrain chunks, and returns them to the pool when they reach a terminal waypoint. Cars serve as the primary mobile obstacle the player must dodge while skateboarding downhill.
 
-A central `TrafficSimulator` prevents cars from clipping through each other by tracking per-path vehicle spacing. Cars transition seamlessly between paths at intersections and between chunks on straight lanes. Traffic lights at each intersection cycle between straight and cross-traffic phases, controlling both spawn timing and vehicle stopping behavior.
+A central `TrafficSimulator` prevents cars from clipping through each other using world-space proximity checks. Cars navigate between `TrafficWaypoint` nodes that form a directed graph with branching support — intersection waypoints can route cars straight through or onto turning lanes. Traffic lights at each intersection cycle between straight and cross-traffic phases, and cars stop at designated stop-line waypoints when the light is red.
 
 ## Architecture
 
@@ -13,19 +13,29 @@ level.tscn
 ├── HillChunks (ChunkCycler)
 │   │   └── TrafficSimulator (created at runtime)
 │   ├── HillChunk (HillChunk)
-│   │   ├── OnComingTrafficThruPath      (Path3D, X=3)
-│   │   ├── OutgoigTrafficThruPath       (Path3D, X=-3)
-│   │   ├── OncomingIntersectionRightPath (Path3D)
-│   │   ├── OutgoingInersectionLeftPath  (Path3D)
-│   │   ├── IntersectionLeftPath         (Path3D)
-│   │   ├── IntersectionRightPath        (Path3D)
+│   │   ├── OncomingEntry       (TrafficWaypoint, spawn, LaneId)
+│   │   ├── OncomingStop        (TrafficWaypoint, stop line)
+│   │   ├── OncomingMid         (TrafficWaypoint)
+│   │   ├── OncomingExit        (TrafficWaypoint, LaneId)
+│   │   ├── OutgoingEntry       (TrafficWaypoint, spawn, LaneId)
+│   │   ├── OutgoingMid         (TrafficWaypoint)
+│   │   ├── OutgoingStop        (TrafficWaypoint, stop line)
+│   │   ├── OutgoingExit        (TrafficWaypoint, LaneId)
+│   │   ├── CrossRightEntry     (TrafficWaypoint, spawn)
+│   │   ├── CrossRightStop      (TrafficWaypoint, stop line)
+│   │   ├── CrossRightCenter    (TrafficWaypoint, branches)
+│   │   ├── CrossRightExit      (TrafficWaypoint, sink)
+│   │   ├── CrossLeftEntry      (TrafficWaypoint, spawn)
+│   │   ├── CrossLeftStop       (TrafficWaypoint, stop line)
+│   │   ├── CrossLeftCenter     (TrafficWaypoint, branches)
+│   │   ├── CrossLeftExit       (TrafficWaypoint, sink)
 │   │   ├── Intersection
 │   │   │   ├── OutgoingStraightTrafficSignal  (TrafficLight)
 │   │   │   ├── IncomingStraightTrafficSignal  (TrafficLight)
 │   │   │   ├── IntersectionRightTrafficSignal (TrafficLight)
 │   │   │   ├── IntersectionLeftTrafficSignal  (TrafficLight)
 │   │   │   └── TrafficLightController
-│   │   └── TrafficSpawner              (TrafficSpawner)
+│   │   └── TrafficSpawner
 │   ├── HillChunk2 ...
 │   └── HillChunk3 ...
 ├── TrafficPool (TrafficPool)
@@ -34,166 +44,131 @@ level.tscn
 └── ...
 ```
 
-The `TrafficPool` lives at the level root as a sibling to `HillChunks`. Each `HillChunk` contains a `TrafficSpawner` with exported references to that chunk's Path3D nodes, and a `TrafficLightController` wired to the four traffic signals in the intersection. `ChunkCycler` creates a `TrafficSimulator` at runtime and passes it (along with the `TrafficPool`) to each chunk's spawner during initialization.
-
 ## Components
 
-### TrafficSimulator (`assets/Scripts/TrafficSimulator.cs`)
+### TrafficWaypoint (`assets/Scripts/TrafficWaypoint.cs`)
 
-**Type:** `Node` — central collision-prevention manager, created by ChunkCycler at runtime.
+**Type:** `Node3D` — a node in a directed graph placed at road-surface positions.
 
-**Key mechanics:**
-- Maintains a `Dictionary<Path3D, List<NpcCar>>` tracking which cars are on which paths
-- `RegisterCar(car, path)` / `UnregisterCar(car, path)` called by NpcCar on activation, path transfer, and reset
-- `CanSpawnOnPath(path, progress)` — checked by TrafficSpawner before spawning; returns false if any car is within `MinFollowDistance` of the spawn point
-- `IsBlockedByTraffic(car, path, progress)` — checked by NpcCar each physics frame; returns true if another car ahead is within `MinFollowDistance`, causing the car to hold position
-
-**Export:** `MinFollowDistance = 6.0f` — minimum meters between cars on the same path.
+**Exports:**
+- `TrafficWaypoint[] NextWaypoints` — directed edges to next waypoints. Multiple entries = branching (e.g., intersection center can route straight or turn).
+- `bool IsSpawnPoint` — cars can be spawned here by the TrafficSpawner.
+- `bool IsStopLine` — cars arriving here check the associated traffic light and stop if red/yellow.
+- `TrafficLight StopLight` — which traffic light this stop line obeys.
+- `string LaneId` — cross-chunk matching key (e.g., "OncomingThru", "OutgoingThru"). Set on boundary waypoints only.
 
 ### NpcCar (`assets/Scripts/NpcCar.cs`)
 
 **Type:** `AnimatableBody3D` — kinematic body that reports velocity to colliding bodies.
 
-**Scene:** `assets/Scenes/NpcCar.tscn` — uses `shitbox.glb` model with two `BoxShape3D` collision shapes.
+**Key mechanics:**
+- Navigates between waypoints using linear interpolation: `GlobalPosition = CurrentWaypoint.Lerp(TargetWaypoint, segmentProgress)`
+- Rotation smoothed via quaternion Slerp between segment orientations
+- On arrival at a waypoint:
+  1. If `IsStopLine` and light is red/yellow → stop at the exact waypoint position
+  2. If `NextWaypoints` has entries → pick one (random for branches) and advance
+  3. If no next waypoints but `LaneId` is set → try cross-chunk transition
+  4. Otherwise → `CarReachedSink` (return to pool)
+- Checks `TrafficSimulator.IsBlocked()` each physics frame to maintain follow distance
+
+### TrafficSimulator (`assets/Scripts/TrafficSimulator.cs`)
+
+**Type:** `Node` — central collision-prevention manager.
 
 **Key mechanics:**
-- Creates a `PathFollow3D` node at `_Ready()` and reuses it across activations
-- `Activate()` parents the PathFollow3D under the target Path3D, registers with simulator
-- `_PhysicsProcess()`:
-  1. Checks `ShouldStopAtLight()` — if the light is red/yellow and car is in the first 30% of the path, car stops
-  2. Checks `IsBlockedByTraffic()` via the simulator — if a car ahead is too close, car holds position
-  3. Otherwise advances `PathFollow.Progress += _speed * delta` and copies `GlobalTransform`
-- When `ProgressRatio >= 1.0`, attempts path transition before falling back to sink
-- `Reset()` unregisters from simulator, removes PathFollow3D from path, clears state
-
-**Path transitions:**
-- `TryTransitionToNextPath()` determines whether the current path is a straight thru lane or an intersection path
-- Straight thru lanes → `TryTransitionToNextChunk()` — finds the same-named path on the neighboring chunk via `ChunkCycler.TryGetNeighborChunk()`
-- Intersection paths → `TryTransitionToThruPath()` — finds the nearest ThruPath endpoint within 8m and transfers the car to it
-- `TransferToPath()` handles the actual transfer: unregisters from old path, reparents PathFollow3D, registers on new path
+- Maintains a `HashSet<NpcCar>` of all active cars
+- `IsBlocked(car)` — returns true if any car is within `MinFollowDistance` ahead (world-space dot product check with car's forward direction)
+- `CanSpawnAt(position)` — returns true if no active car is within `MinFollowDistance` of the position
 
 ### TrafficPool (`assets/Scripts/TrafficPool.cs`)
 
-**Type:** `Node3D`, placed at the level root.
+**Type:** `Node3D` — object pool of pre-instantiated cars.
 
-**Exports:**
-- `PackedScene NpcCarScene` — the NpcCar.tscn scene
-- `int PoolSize = 20` — number of pre-instantiated cars
-
-**Lifecycle:**
-- `_Ready()`: instantiates `PoolSize` cars as children, disables each, adds to `"MovableObstacles"` group, subscribes to `CarReachedSink` for automatic return
-- `SetSimulator(TrafficSimulator)`: stores reference, passed to each car on checkout
-- `Checkout()`: pops from `Stack<NpcCar> _available`, adds to `HashSet<NpcCar> _active`, calls `Enable()`, sets simulator. Returns null if pool is empty
-- `Return(NpcCar)`: calls `Reset()` + `Disable()`, moves from active to available
-- `ReturnAll()`: returns all active cars (called on player respawn)
+- `Checkout()` → pop from available stack, enable, set simulator
+- `Return(car)` → reset, disable, push back to available
+- `ReturnAll()` → return all active cars (player respawn)
 
 ### TrafficSpawner (`assets/Scripts/TrafficSpawner.cs`)
 
-**Type:** `Node3D`, one per HillChunk.
+**Type:** `Node3D` — per-chunk spawner.
 
 **Exports:**
-- `Path3D[] TrafficPaths` — wired to the chunk's Path3D nodes
-- `float MinSpawnInterval = 2.0f`, `MaxSpawnInterval = 5.0f`
-- `float MinCarSpeed = 8.0f`, `MaxCarSpeed = 15.0f`
+- `TrafficWaypoint[] SpawnPoints` — waypoints where cars can spawn
+- `float MinSpawnInterval/MaxSpawnInterval` — timer range per spawn point
+- `float MinCarSpeed/MaxCarSpeed` — speed range
 
-**Behavior:**
-- `Initialize(TrafficPool pool, TrafficSimulator simulator)`: stores pool and simulator references, seeds per-path spawn timers
-- `SetLightController(TrafficLightController)`: stores light controller reference
-- `SpawnTick(double delta)`: called from `HillChunk._Process()` only when `!Passed`. On timer expiry:
-  1. Checks `simulator.CanSpawnOnPath()` — skips if another car is too close to spawn point
-  2. Checks `lightController.GetStateForPath()` — skips if light is red
-  3. Checks out a car, activates it, and passes the light controller to it
+**Behavior:** On timer expiry, checks `simulator.CanSpawnAt()` and stop-line light state, then spawns a car at the waypoint.
 
 ### TrafficLight (`assets/Scripts/TrafficLight.cs`)
 
-**Type:** `Node3D` — attached to each traffic signal placeholder in the intersection.
-
-**Scene:** `assets/Scenes/traffic_signal.tscn` — BoxMesh with TrafficLight script.
-
-**Key mechanics:**
-- Maintains a `TrafficLightState` enum (Green, Yellow, Red)
-- `SetState(state)` updates the state and applies an emissive material color to the mesh
-- Green = (0.1, 0.8, 0.1), Yellow = (0.9, 0.8, 0.1), Red = (0.9, 0.1, 0.1)
+**Type:** `Node3D` — individual signal with state and emissive color display.
 
 ### TrafficLightController (`assets/Scripts/TrafficLightController.cs`)
 
-**Type:** `Node3D` — one per intersection, child of the Intersection node.
+**Type:** `Node3D` — per-intersection light cycle.
 
-**Exports:**
-- `TrafficLight StraightOutgoing, StraightIncoming` — the two straight-direction signals
-- `TrafficLight CrossRight, CrossLeft` — the two cross-traffic signals
-- `float GreenDuration = 8.0f`, `YellowDuration = 2.0f`, `AllRedDuration = 1.0f`
+**Phase cycle:** StraightGreen(8s) → StraightYellow(2s) → AllRed(1s) → CrossGreen(8s) → CrossYellow(2s) → AllRed(1s) → repeat.
 
-**Phase cycle:** StraightGreen → StraightYellow → AllRed → CrossGreen → CrossYellow → AllRed → (repeat)
+Cars check lights via the `TrafficWaypoint.StopLight` reference — the controller just cycles the phases.
 
-**Key method:** `GetStateForPath(Path3D)` — returns the current light state for a given path based on its name (ThruPath → straight signals, Intersection → cross signals). Used by both TrafficSpawner (spawn gating) and NpcCar (stop behavior).
+## Waypoint Graph Layout Per Chunk
 
-## Integration with Existing Systems
+### Oncoming lane (X=3, cars travel high Z → low Z)
+```
+OncomingEntry (3, -28, 122)  [spawn, LaneId="OncomingThru"]
+  → OncomingStop (3, -29, 115)  [stop line, IncomingStraightTrafficSignal]
+    → OncomingMid (3, -14, 50)
+      → OncomingExit (3, 1, 0)  [LaneId="OncomingThru", cross-chunk exit]
+```
 
-### ChunkCycler (`assets/Scripts/ChunkCycler.cs`)
+### Outgoing lane (X=-3, cars travel low Z → high Z)
+```
+OutgoingEntry (-3, 1, 0)  [spawn, LaneId="OutgoingThru"]
+  → OutgoingMid (-3, -14, 50)
+    → OutgoingStop (-3, -27, 95)  [stop line, OutgoingStraightTrafficSignal]
+      → OutgoingExit (-3, -28, 122)  [LaneId="OutgoingThru", cross-chunk exit]
+```
 
-- `[Export] TrafficPool TrafficPool` field wired in `level.tscn`
-- `_Ready()`: creates a `TrafficSimulator` as a child node, calls `TrafficPool.SetSimulator()`, iterates `ChunkPool` and calls `chunk.InitializeTraffic(TrafficPool, simulator)` on each
-- `ChunkCycler_PlayerRespawned()`: calls `TrafficPool.ReturnAll()` before `ResetChunks()` to clear all traffic
-- `TryGetNeighborChunk()`: used by NpcCar for cross-chunk path transitions on straight lanes
+### Cross-traffic from right (traveling -X, Z≈107)
+```
+CrossRightEntry (50, -29, 107)  [spawn]
+  → CrossRightStop (8, -29, 107)  [stop line, IntersectionRightTrafficSignal]
+    → CrossRightCenter (0, -29, 107)  [branches:]
+      → CrossRightExit (-50, -29, 107)  [sink]
+      → OncomingMid (3, -14, 50)  [turn onto oncoming lane]
+```
 
-### HillChunk (`assets/Scripts/HillChunk.cs`)
+### Cross-traffic from left (traveling +X, Z≈113)
+```
+CrossLeftEntry (-50, -29, 113)  [spawn]
+  → CrossLeftStop (-8, -29, 113)  [stop line, IntersectionLeftTrafficSignal]
+    → CrossLeftCenter (0, -29, 113)  [branches:]
+      → CrossLeftExit (50, -29, 113)  [sink]
+      → OutgoingStop (-3, -27, 95)  [turn onto outgoing lane]
+```
 
-- `[Export] TrafficSpawner Spawner` field wired in `HillChunk.tscn`
-- `[Export] TrafficLightController LightController` field wired to `Intersection/TrafficLightController`
-- `InitializeTraffic(TrafficPool pool, TrafficSimulator simulator)`: passes pool and simulator to spawner, sets light controller on spawner
-- `CycleObstacles()`: calls `Spawner.ReturnAllCars()` — invoked by ChunkCycler before repositioning a chunk
-- `_Process(double delta)`: calls `Spawner.SpawnTick(delta)` when `!Passed`
+## Cross-Chunk Transitions
 
-### ChunkTrigger (`assets/Scripts/ChunkTrigger.cs`)
+When a car reaches a boundary waypoint (has `LaneId`, no `NextWaypoints`):
+1. NpcCar asks `ChunkCycler.TryGetNeighborChunk()` for the adjacent chunk
+2. `ChunkCycler.FindEntryWaypoint()` searches the neighbor for a waypoint with matching `LaneId` and `IsSpawnPoint`
+3. Car transfers to that waypoint and continues driving
 
-- `BodyEntered`/`BodyExited` handlers filter by `body.IsInGroup("Player")` so NPC cars do not trigger chunk cycling
+Direction is determined by the `LaneId`: names containing "Oncoming" → Inbound, others → Outbound.
 
-## Traffic Lane Behavior
+## Stop Line Behavior
 
-| Path | Direction | Gameplay Effect |
-|------|-----------|-----------------|
-| `OnComingTrafficThruPath` (X=3) | Toward player | High closing speed (~25-40 m/s relative). Dodge-or-die |
-| `OutgoigTrafficThruPath` (X=-3) | Same as player | Player approaches from behind, must weave around |
-| `OncomingIntersectionRightPath` | Cross-traffic from right | Timed hazard windows at intersections, gated by traffic lights |
-| `IntersectionLeftPath` | Cross-traffic from left | Timed hazard windows at intersections, gated by traffic lights |
-| `OutgoingInersectionLeftPath` | Exits intersection left | Continuation path for cross-traffic |
-| `IntersectionRightPath` | Exits intersection right | Continuation path for cross-traffic |
-
-## Path Transition Behavior
-
-### Intersection transitions (cross-traffic → thru lanes)
-When a car on an intersection path (e.g. `OncomingIntersectionRightPath`) reaches `ProgressRatio >= 1.0`, it searches for the nearest ThruPath endpoint within 8 meters. If found, the car transfers to that ThruPath and continues driving, rather than being returned to the pool.
-
-### Chunk transitions (straight lanes)
-When a car on a ThruPath reaches the end, it looks for a neighboring chunk (via `ChunkCycler.TryGetNeighborChunk()`) in the appropriate direction (inbound paths look forward in Z, outbound paths look backward). If a neighbor exists and has a matching path, the car transfers to it and continues. Cars only sink to the pool when no transition is possible (e.g., at the world boundary).
-
-## Traffic Light Behavior
-
-Each intersection has a `TrafficLightController` that cycles through six phases:
-
-| Phase | Duration | Straight Signals | Cross Signals |
-|-------|----------|-----------------|---------------|
-| StraightGreen | 8s | Green | Red |
-| StraightYellow | 2s | Yellow | Red |
-| AllRedBeforeCross | 1s | Red | Red |
-| CrossGreen | 8s | Red | Green |
-| CrossYellow | 2s | Red | Yellow |
-| AllRedBeforeStraight | 1s | Red | Red |
-
-**Spawn gating:** The spawner won't spawn cars on paths whose light is red.
-
-**Vehicle stopping:** Cars in the first 30% of their path will stop if the light is red or yellow. Cars already past the 30% threshold continue through the intersection.
-
-**Visual feedback:** Signal meshes change color via emissive materials, visible to the player as they approach the intersection.
+- Cars check the light only on arrival at a stop-line waypoint (`_segmentProgress >= 1.0`)
+- If the light is red or yellow, the car stops at the exact waypoint position
+- Cars already past the stop line continue through the intersection
+- When the light turns green, stopped cars resume
 
 ## Collision Prevention
 
-- **Spawn spacing:** `TrafficSimulator.CanSpawnOnPath()` prevents spawning a car within `MinFollowDistance` (6m) of any existing car on the same path
-- **Follow distance:** `TrafficSimulator.IsBlockedByTraffic()` prevents a car from advancing if another car ahead on the same path is within `MinFollowDistance`
-- **Traffic lights:** Red lights prevent spawning and stop early-path vehicles, creating natural gaps between cross-traffic and straight traffic
-- NPC cars use `collision_layer = 4` (layer 3). Player-car collisions happen via `MoveAndSlide()`
-- Cars do NOT physically collide with each other (spacing is managed logically by the simulator)
+- `TrafficSimulator.IsBlocked()` — world-space forward dot-product check prevents advancing into a car ahead within `MinFollowDistance` (6m)
+- `TrafficSimulator.CanSpawnAt()` — prevents spawning within `MinFollowDistance` of any active car
+- Traffic lights create natural gaps between conflicting traffic streams
+- NPC cars use `collision_layer = 4`. Player-car collisions happen via `MoveAndSlide()`
 
 ## Object Lifecycle
 
@@ -204,36 +179,28 @@ Pool._Ready()
 ChunkCycler._Ready()
   └─ Create TrafficSimulator → Pool.SetSimulator()
   └─ chunk.InitializeTraffic(pool, simulator) for each chunk
-      └─ spawner.Initialize(pool, simulator)
-      └─ spawner.SetLightController(lightController)
 
 SpawnTick() timer expires
-  └─ Simulator.CanSpawnOnPath() check
-  └─ LightController.GetStateForPath() check
-  └─ Pool.Checkout() → Enable() → SetSimulator() → add to _active
-      └─ car.Activate(path, chunk, speed)
-          └─ Simulator.RegisterCar(car, path)
-          └─ PathFollow3D added as child of Path3D
+  └─ Simulator.CanSpawnAt(wp.GlobalPosition) check
+  └─ Stop-line light check (skip if red)
+  └─ Pool.Checkout() → Enable() → SetSimulator()
+      └─ car.Activate(waypoint, chunk, speed)
+          └─ Simulator.Register(car)
+          └─ AdvanceToNextWaypoint()
 
 Car._PhysicsProcess()
-  └─ ShouldStopAtLight() → hold position if red/yellow and early in path
-  └─ Simulator.IsBlockedByTraffic() → hold position if car ahead too close
-  └─ Advance progress, copy transform
+  └─ Stop-line check → hold at stop line if red/yellow
+  └─ Simulator.IsBlocked() → hold if car ahead too close
+  └─ Advance segmentProgress, lerp position, slerp rotation
+  └─ On arrival: check stop line, pick next waypoint or cross-chunk
 
-Car reaches end of path (ProgressRatio >= 1.0)
-  ├─ TryTransitionToThruPath() → if intersection path, find nearby ThruPath
-  ├─ TryTransitionToNextChunk() → if thru path, find same path on neighbor chunk
+Car reaches terminal waypoint (no next, no cross-chunk)
   └─ CarReachedSink → Pool.Return(car)
-      └─ Simulator.UnregisterCar(car, path)
-      └─ car.Reset() → remove PathFollow3D from path
-      └─ car.Disable() → push back to _available
+      └─ Simulator.Unregister(car)
+      └─ car.Reset() + Disable()
 
-Chunk recycled (MoveChunk)
-  └─ chunk.CycleObstacles() → Spawner.ReturnAllCars()
-
-Player respawn
-  └─ TrafficPool.ReturnAll() → return every active car
-  └─ ResetChunks()
+Chunk recycled → chunk.CycleObstacles() → Spawner.ReturnAllCars()
+Player respawn → TrafficPool.ReturnAll()
 ```
 
 ## Tuning Parameters
@@ -241,11 +208,11 @@ Player respawn
 | Parameter | Default | Location | Effect |
 |-----------|---------|----------|--------|
 | `PoolSize` | 20 | TrafficPool | Max concurrent NPC cars |
-| `MinSpawnInterval` | 2.0s | TrafficSpawner | Minimum time between spawns per path |
-| `MaxSpawnInterval` | 5.0s | TrafficSpawner | Maximum time between spawns per path |
+| `MinSpawnInterval` | 2.0s | TrafficSpawner | Minimum time between spawns per point |
+| `MaxSpawnInterval` | 5.0s | TrafficSpawner | Maximum time between spawns per point |
 | `MinCarSpeed` | 8.0 m/s | TrafficSpawner | Slowest NPC car speed |
 | `MaxCarSpeed` | 15.0 m/s | TrafficSpawner | Fastest NPC car speed |
-| `MinFollowDistance` | 6.0 m | TrafficSimulator | Minimum gap between cars on same path |
+| `MinFollowDistance` | 6.0 m | TrafficSimulator | Minimum gap between cars |
 | `GreenDuration` | 8.0s | TrafficLightController | Green phase length |
 | `YellowDuration` | 2.0s | TrafficLightController | Yellow phase length |
 | `AllRedDuration` | 1.0s | TrafficLightController | All-red clearance interval |
@@ -254,16 +221,16 @@ Player respawn
 
 | File | Purpose |
 |------|---------|
-| `assets/Scripts/NpcCar.cs` | Individual car: path following, collision avoidance, path transitions, light stops |
+| `assets/Scripts/TrafficWaypoint.cs` | Waypoint node: directed graph edges, spawn/stop-line/lane metadata |
+| `assets/Scripts/NpcCar.cs` | Vehicle: waypoint-to-waypoint interpolation, stop-line stops, cross-chunk transitions |
+| `assets/Scripts/TrafficSimulator.cs` | Collision prevention: world-space proximity + direction check |
 | `assets/Scripts/TrafficPool.cs` | Object pool: checkout, return, simulator wiring |
-| `assets/Scripts/TrafficSpawner.cs` | Per-chunk spawner: timer-based spawning with simulator and light gating |
-| `assets/Scripts/TrafficSimulator.cs` | Central collision prevention: per-path car tracking, spacing enforcement |
-| `assets/Scripts/TrafficLight.cs` | Individual signal: state management, emissive color display |
-| `assets/Scripts/TrafficLightController.cs` | Per-intersection light cycle: phase timing, state queries |
-| `assets/Scenes/NpcCar.tscn` | Car scene: AnimatableBody3D + shitbox.glb + 2 box colliders |
+| `assets/Scripts/TrafficSpawner.cs` | Per-chunk spawner: timer-based spawning at waypoints |
+| `assets/Scripts/TrafficLight.cs` | Individual signal: state + emissive color |
+| `assets/Scripts/TrafficLightController.cs` | Per-intersection light cycle: phase timing |
+| `assets/Scenes/NpcCar.tscn` | Car scene: AnimatableBody3D + model + colliders |
 | `assets/Scenes/traffic_signal.tscn` | Signal scene: Node3D + BoxMesh + TrafficLight script |
-| `assets/Scripts/ChunkCycler.cs` | Chunk recycler: creates TrafficSimulator, initializes traffic system |
-| `assets/Scripts/HillChunk.cs` | Chunk container: spawner + light controller exports, traffic initialization |
-| `assets/Scripts/ChunkTrigger.cs` | Chunk boundary: player group filter |
-| `assets/Scenes/HillChunk.tscn` | Chunk scene: paths, intersection, traffic signals, light controller |
-| `assets/Scenes/level.tscn` | Level root: TrafficPool node, ChunkCycler export wiring |
+| `assets/Scripts/ChunkCycler.cs` | Chunk recycler: creates simulator, FindEntryWaypoint() |
+| `assets/Scripts/HillChunk.cs` | Chunk container: spawner export, traffic initialization |
+| `assets/Scenes/HillChunk.tscn` | Chunk scene: 14 waypoints, intersection, traffic signals |
+| `assets/Scenes/level.tscn` | Level root: TrafficPool, ChunkCycler wiring |

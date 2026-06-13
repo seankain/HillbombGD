@@ -6,68 +6,87 @@ public delegate void CarReachedSinkEventHandler(NpcCar car);
 public partial class NpcCar : AnimatableBody3D
 {
 	public HillChunk CurrentChunk { get; private set; }
+	public TrafficWaypoint CurrentWaypoint { get; private set; }
+	public TrafficWaypoint TargetWaypoint { get; private set; }
 	public event CarReachedSinkEventHandler CarReachedSink;
-	public float CurrentProgress => _pathFollow?.Progress ?? 0f;
-	public Path3D CurrentPath { get; private set; }
 
-	private PathFollow3D _pathFollow;
 	private float _speed;
 	private bool _active;
+	private float _segmentProgress;
+	private float _segmentLength;
 	private TrafficSimulator _simulator;
-	private TrafficLightController _lightController;
+	private RandomNumberGenerator _rng;
+	private bool _stoppedAtStopLine;
+	private Quaternion _currentRotation;
+	private Quaternion _targetRotation;
 
 	public override void _Ready()
 	{
-		_pathFollow = new PathFollow3D();
-		_pathFollow.Loop = false;
-		_pathFollow.RotationMode = PathFollow3D.RotationModeEnum.Oriented;
+		_rng = new RandomNumberGenerator();
+		_rng.Randomize();
 		Disable();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (!_active)
+		if (!_active || TargetWaypoint == null)
 			return;
 
-		if (ShouldStopAtLight())
+		if (_stoppedAtStopLine)
 		{
-			GlobalTransform = _pathFollow.GlobalTransform;
-			return;
-		}
-
-		float proposedProgress = _pathFollow.Progress + _speed * (float)delta;
-
-		if (_simulator != null && _simulator.IsBlockedByTraffic(this, CurrentPath, proposedProgress))
-		{
-			GlobalTransform = _pathFollow.GlobalTransform;
-			return;
-		}
-
-		_pathFollow.Progress = proposedProgress;
-		GlobalTransform = _pathFollow.GlobalTransform;
-
-		if (_pathFollow.ProgressRatio >= 1.0f)
-		{
-			if (TryTransitionToNextPath())
+			if (CurrentWaypoint.StopLight == null ||
+				CurrentWaypoint.StopLight.State == TrafficLightState.Green)
+			{
+				_stoppedAtStopLine = false;
+			}
+			else
+			{
 				return;
-
-			CarReachedSink?.Invoke(this);
+			}
 		}
+
+		if (_simulator != null && _simulator.IsBlocked(this))
+			return;
+
+		float dt = (float)delta;
+		_segmentProgress += (_speed / _segmentLength) * dt;
+
+		if (_segmentProgress >= 1.0f)
+		{
+			_segmentProgress = 1.0f;
+			GlobalPosition = TargetWaypoint.GlobalPosition;
+			ApplyRotation(1.0f);
+			ArriveAtWaypoint();
+			return;
+		}
+
+		GlobalPosition = CurrentWaypoint.GlobalPosition.Lerp(
+			TargetWaypoint.GlobalPosition, _segmentProgress);
+
+		ApplyRotation(_segmentProgress);
 	}
 
-	public void Activate(Path3D path, HillChunk chunk, float speed, float startOffset = 0f)
+	public void Activate(TrafficWaypoint startWaypoint, HillChunk chunk, float speed)
 	{
 		CurrentChunk = chunk;
-		CurrentPath = path;
+		CurrentWaypoint = startWaypoint;
 		_speed = speed;
 		_active = true;
+		_stoppedAtStopLine = false;
 
-		path.AddChild(_pathFollow);
-		_pathFollow.Progress = startOffset;
+		GlobalPosition = startWaypoint.GlobalPosition;
 
-		_simulator?.RegisterCar(this, path);
+		_simulator?.Register(this);
 
-		GlobalTransform = _pathFollow.GlobalTransform;
+		if (!AdvanceToNextWaypoint())
+		{
+			CarReachedSink?.Invoke(this);
+			return;
+		}
+
+		ComputeTargetRotation();
+		_currentRotation = _targetRotation;
+		ApplyRotation(0f);
 	}
 
 	public void SetSimulator(TrafficSimulator simulator)
@@ -75,27 +94,18 @@ public partial class NpcCar : AnimatableBody3D
 		_simulator = simulator;
 	}
 
-	public void SetLightController(TrafficLightController controller)
-	{
-		_lightController = controller;
-	}
-
 	public void Reset()
 	{
-		if (_simulator != null && CurrentPath != null)
-			_simulator.UnregisterCar(this, CurrentPath);
+		_simulator?.Unregister(this);
 
 		_active = false;
 		_speed = 0f;
 		CurrentChunk = null;
-		CurrentPath = null;
-		_lightController = null;
-
-		if (_pathFollow.GetParent() != null)
-		{
-			_pathFollow.GetParent().RemoveChild(_pathFollow);
-		}
-		_pathFollow.Progress = 0f;
+		CurrentWaypoint = null;
+		TargetWaypoint = null;
+		_segmentProgress = 0f;
+		_segmentLength = 0f;
+		_stoppedAtStopLine = false;
 	}
 
 	public void Disable()
@@ -115,113 +125,109 @@ public partial class NpcCar : AnimatableBody3D
 		SetCollisionEnabled(true);
 	}
 
-	private bool ShouldStopAtLight()
+	private void ArriveAtWaypoint()
 	{
-		if (_lightController == null || CurrentPath == null)
-			return false;
+		CurrentWaypoint = TargetWaypoint;
 
-		var state = _lightController.GetStateForPath(CurrentPath);
-		if (state == TrafficLightState.Red || state == TrafficLightState.Yellow)
+		if (CurrentWaypoint.IsStopLine && CurrentWaypoint.StopLight != null)
 		{
-			if (_pathFollow.ProgressRatio < 0.3f)
-				return true;
-		}
-		return false;
-	}
-
-	private bool TryTransitionToNextPath()
-	{
-		if (CurrentChunk == null)
-			return false;
-
-		string pathName = CurrentPath.Name;
-		bool isStraightThru = pathName.Contains("ThruPath");
-
-		if (isStraightThru)
-			return TryTransitionToNextChunk();
-
-		return TryTransitionToThruPath();
-	}
-
-	private bool TryTransitionToThruPath()
-	{
-		if (CurrentChunk == null)
-			return false;
-
-		var endPos = _pathFollow.GlobalPosition;
-		Path3D bestPath = null;
-		float bestDist = 8.0f;
-
-		foreach (var child in CurrentChunk.GetChildren())
-		{
-			if (child is Path3D candidate && candidate != CurrentPath && candidate.Name.Contains("ThruPath"))
+			var state = CurrentWaypoint.StopLight.State;
+			if (state == TrafficLightState.Red || state == TrafficLightState.Yellow)
 			{
-				var curveStart = candidate.GlobalPosition + candidate.Curve.GetPointPosition(0);
-				var curveEnd = candidate.GlobalPosition +
-					candidate.Curve.GetPointPosition(candidate.Curve.PointCount - 1);
-
-				float distToStart = endPos.DistanceTo(curveStart);
-				float distToEnd = endPos.DistanceTo(curveEnd);
-				float dist = Mathf.Min(distToStart, distToEnd);
-
-				if (dist < bestDist)
-				{
-					bestDist = dist;
-					bestPath = candidate;
-				}
+				_stoppedAtStopLine = true;
+				return;
 			}
 		}
 
-		if (bestPath != null)
+		if (!AdvanceToNextWaypoint())
 		{
-			TransferToPath(bestPath, CurrentChunk);
-			return true;
+			if (!TryCrossChunkTransition())
+			{
+				CarReachedSink?.Invoke(this);
+			}
 		}
-		return false;
 	}
 
-	private bool TryTransitionToNextChunk()
+	private bool AdvanceToNextWaypoint()
 	{
+		if (CurrentWaypoint.NextWaypoints == null || CurrentWaypoint.NextWaypoints.Length == 0)
+			return false;
+
+		var previousRotation = _targetRotation;
+
+		if (CurrentWaypoint.NextWaypoints.Length == 1)
+			TargetWaypoint = CurrentWaypoint.NextWaypoints[0];
+		else
+			TargetWaypoint = CurrentWaypoint.NextWaypoints[
+				_rng.RandiRange(0, CurrentWaypoint.NextWaypoints.Length - 1)];
+
+		_segmentProgress = 0f;
+		_segmentLength = CurrentWaypoint.GlobalPosition.DistanceTo(TargetWaypoint.GlobalPosition);
+		if (_segmentLength < 0.01f)
+			_segmentLength = 0.01f;
+
+		_currentRotation = previousRotation;
+		ComputeTargetRotation();
+
+		return true;
+	}
+
+	private bool TryCrossChunkTransition()
+	{
+		if (string.IsNullOrEmpty(CurrentWaypoint.LaneId) || CurrentChunk == null)
+			return false;
+
 		var cycler = GetChunkCycler();
 		if (cycler == null)
 			return false;
 
-		string pathName = CurrentPath.Name;
-		TravelDirection direction = pathName.Contains("OnComing")
+		TravelDirection direction = CurrentWaypoint.LaneId.Contains("Oncoming")
 			? TravelDirection.Inbound
 			: TravelDirection.Outbound;
 
 		if (cycler.TryGetNeighborChunk(CurrentChunk, direction, out HillChunk neighbor))
 		{
-			foreach (var child in neighbor.GetChildren())
+			var entryWp = cycler.FindEntryWaypoint(neighbor, CurrentWaypoint.LaneId);
+			if (entryWp != null)
 			{
-				if (child is Path3D candidate && candidate.Name == pathName)
+				CurrentChunk = neighbor;
+				CurrentWaypoint = entryWp;
+				GlobalPosition = entryWp.GlobalPosition;
+
+				if (!AdvanceToNextWaypoint())
 				{
-					TransferToPath(candidate, neighbor);
-					return true;
+					CarReachedSink?.Invoke(this);
+					return false;
 				}
+				return true;
 			}
 		}
 		return false;
 	}
 
-	private void TransferToPath(Path3D newPath, HillChunk newChunk)
+	private void ComputeTargetRotation()
 	{
-		if (_simulator != null && CurrentPath != null)
-			_simulator.UnregisterCar(this, CurrentPath);
+		if (TargetWaypoint == null || CurrentWaypoint == null)
+			return;
 
-		if (_pathFollow.GetParent() != null)
-			_pathFollow.GetParent().RemoveChild(_pathFollow);
+		var direction = (TargetWaypoint.GlobalPosition - CurrentWaypoint.GlobalPosition).Normalized();
+		if (direction.LengthSquared() < 0.001f)
+			return;
 
-		CurrentPath = newPath;
-		CurrentChunk = newChunk;
+		var lookBasis = Basis.LookingAt(direction, Vector3.Up);
+		_targetRotation = lookBasis.GetRotationQuaternion();
+	}
 
-		newPath.AddChild(_pathFollow);
-		_pathFollow.Progress = 0f;
+	private void ApplyRotation(float t)
+	{
+		if (_currentRotation == default || _targetRotation == default)
+			return;
 
-		_simulator?.RegisterCar(this, newPath);
-
-		GlobalTransform = _pathFollow.GlobalTransform;
+		var smoothT = Mathf.Min(t * 3.0f, 1.0f);
+		var rotation = _currentRotation.Slerp(_targetRotation, smoothT);
+		var transform = GlobalTransform;
+		transform.Basis = new Basis(rotation);
+		GlobalTransform = transform;
 	}
 
 	private ChunkCycler GetChunkCycler()
