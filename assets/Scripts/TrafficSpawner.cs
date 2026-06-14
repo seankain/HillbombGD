@@ -45,12 +45,16 @@ public partial class TrafficSpawner : Node3D
 	public void SpawnTick(double delta)
 	{
 		if (_pool == null || SpawnPoints == null)
+		{
 			return;
+		}
 
 		for (int i = 0; i < SpawnPoints.Length; i++)
 		{
 			if (SpawnPoints[i] == null)
+			{
 				continue;
+			}
 
 			_spawnTimers[i] -= (float)delta;
 			if (_spawnTimers[i] <= 0f)
@@ -60,18 +64,25 @@ public partial class TrafficSpawner : Node3D
 				var wp = SpawnPoints[i];
 
 				if (_simulator != null && !_simulator.CanSpawnAt(wp.GlobalPosition))
+				{
 					continue;
+				}
 
 				if (wp.IsStopLine && wp.StopLight != null &&
 					wp.StopLight.State == TrafficLightState.Red)
+				{
 					continue;
+				}
 
 				var car = _pool.Checkout();
 				if (car == null)
+				{
 					continue;
+				}
 
 				var chunk = GetParent<HillChunk>();
 				float speed = _rng.RandfRange(MinCarSpeed, MaxCarSpeed);
+				GD.Print("spawning car");
 				car.Activate(wp, chunk, speed);
 				_activeCars.Add(car);
 			}
@@ -81,7 +92,9 @@ public partial class TrafficSpawner : Node3D
 	public void ReturnAllCars()
 	{
 		if (_pool == null || _activeCars == null)
+		{
 			return;
+		}
 
 		foreach (var car in _activeCars)
 		{
