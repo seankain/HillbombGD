@@ -74,7 +74,7 @@ public partial class TrafficSpawner : Node3D
 					continue;
 				}
 
-				var car = _pool.Checkout();
+				var car = _pool.Checkout(wp.GlobalPosition);
 				if (car == null)
 				{
 					continue;
@@ -82,7 +82,6 @@ public partial class TrafficSpawner : Node3D
 
 				var chunk = GetParent<HillChunk>();
 				float speed = _rng.RandfRange(MinCarSpeed, MaxCarSpeed);
-				GD.Print("spawning car");
 				car.Activate(wp, chunk, speed);
 				_activeCars.Add(car);
 			}
