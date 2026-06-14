@@ -35,7 +35,7 @@ public partial class TrafficPool : Node3D
 		_simulator = simulator;
 	}
 
-	public NpcCar Checkout()
+	public NpcCar Checkout(Vector3 spawnPosition)
 	{
 		if (_available.Count == 0)
 		{
@@ -44,6 +44,7 @@ public partial class TrafficPool : Node3D
 
 		var car = _available.Pop();
 		_active.Add(car);
+		car.GlobalPosition = spawnPosition;
 		car.Enable();
 		if (_simulator != null)
 			car.SetSimulator(_simulator);

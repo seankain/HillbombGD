@@ -54,16 +54,14 @@ public partial class NpcCar : AnimatableBody3D
 		if (_segmentProgress >= 1.0f)
 		{
 			_segmentProgress = 1.0f;
-			GlobalPosition = TargetWaypoint.GlobalPosition;
-			ApplyRotation(1.0f);
+			GlobalTransform = new Transform3D(ComputeSmoothedBasis(1.0f), TargetWaypoint.GlobalPosition);
 			ArriveAtWaypoint();
 			return;
 		}
 
-		GlobalPosition = CurrentWaypoint.GlobalPosition.Lerp(
+		var pos = CurrentWaypoint.GlobalPosition.Lerp(
 			TargetWaypoint.GlobalPosition, _segmentProgress);
-
-		ApplyRotation(_segmentProgress);
+		GlobalTransform = new Transform3D(ComputeSmoothedBasis(_segmentProgress), pos);
 	}
 
 	public void Activate(TrafficWaypoint startWaypoint, HillChunk chunk, float speed)
@@ -73,8 +71,6 @@ public partial class NpcCar : AnimatableBody3D
 		_speed = speed;
 		_active = true;
 		_stoppedAtStopLine = false;
-
-		GlobalPosition = startWaypoint.GlobalPosition;
 
 		_simulator?.Register(this);
 
@@ -86,7 +82,10 @@ public partial class NpcCar : AnimatableBody3D
 
 		ComputeTargetRotation();
 		_currentRotation = _targetRotation;
-		ApplyRotation(0f);
+
+		var spawnPos = startWaypoint.GlobalPosition;
+		var t = new Transform3D(new Basis(_targetRotation), spawnPos);
+		GlobalTransform = t;
 	}
 
 	public void SetSimulator(TrafficSimulator simulator)
@@ -192,13 +191,14 @@ public partial class NpcCar : AnimatableBody3D
 			{
 				CurrentChunk = neighbor;
 				CurrentWaypoint = entryWp;
-				GlobalPosition = entryWp.GlobalPosition;
 
 				if (!AdvanceToNextWaypoint())
 				{
 					CarReachedSink?.Invoke(this);
 					return false;
 				}
+				ComputeTargetRotation();
+				GlobalTransform = new Transform3D(new Basis(_targetRotation), entryWp.GlobalPosition);
 				return true;
 			}
 		}
@@ -218,16 +218,14 @@ public partial class NpcCar : AnimatableBody3D
 		_targetRotation = lookBasis.GetRotationQuaternion();
 	}
 
-	private void ApplyRotation(float t)
+	private Basis ComputeSmoothedBasis(float t)
 	{
 		if (_currentRotation == default || _targetRotation == default)
-			return;
+			return GlobalTransform.Basis;
 
 		var smoothT = Mathf.Min(t * 3.0f, 1.0f);
 		var rotation = _currentRotation.Slerp(_targetRotation, smoothT);
-		var transform = GlobalTransform;
-		transform.Basis = new Basis(rotation);
-		GlobalTransform = transform;
+		return new Basis(rotation);
 	}
 
 	private ChunkCycler GetChunkCycler()
