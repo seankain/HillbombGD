@@ -20,10 +20,14 @@ public partial class NpcCar : AnimatableBody3D
 	private Quaternion _currentRotation;
 	private Quaternion _targetRotation;
 
+	private static readonly Quaternion IdentityQuat = new Quaternion(0, 0, 0, 1);
+
 	public override void _Ready()
 	{
 		_rng = new RandomNumberGenerator();
 		_rng.Randomize();
+		_currentRotation = IdentityQuat;
+		_targetRotation = IdentityQuat;
 		Disable();
 	}
 
@@ -71,11 +75,14 @@ public partial class NpcCar : AnimatableBody3D
 		_speed = speed;
 		_active = true;
 		_stoppedAtStopLine = false;
+		_currentRotation = IdentityQuat;
+		_targetRotation = IdentityQuat;
 
 		_simulator?.Register(this);
 
 		if (!AdvanceToNextWaypoint())
 		{
+			GD.PrintErr($"NpcCar: no valid NextWaypoints on {startWaypoint.Name}, returning to pool");
 			CarReachedSink?.Invoke(this);
 			return;
 		}
@@ -84,8 +91,7 @@ public partial class NpcCar : AnimatableBody3D
 		_currentRotation = _targetRotation;
 
 		var spawnPos = startWaypoint.GlobalPosition;
-		var t = new Transform3D(new Basis(_targetRotation), spawnPos);
-		GlobalTransform = t;
+		GlobalTransform = new Transform3D(new Basis(_targetRotation), spawnPos);
 	}
 
 	public void SetSimulator(TrafficSimulator simulator)
@@ -105,6 +111,8 @@ public partial class NpcCar : AnimatableBody3D
 		_segmentProgress = 0f;
 		_segmentLength = 0f;
 		_stoppedAtStopLine = false;
+		_currentRotation = IdentityQuat;
+		_targetRotation = IdentityQuat;
 	}
 
 	public void Disable()
@@ -153,13 +161,34 @@ public partial class NpcCar : AnimatableBody3D
 			return false;
 
 		var previousRotation = _targetRotation;
+		TrafficWaypoint nextWp = null;
 
 		if (CurrentWaypoint.NextWaypoints.Length == 1)
-			TargetWaypoint = CurrentWaypoint.NextWaypoints[0];
+		{
+			nextWp = CurrentWaypoint.NextWaypoints[0];
+		}
 		else
-			TargetWaypoint = CurrentWaypoint.NextWaypoints[
-				_rng.RandiRange(0, CurrentWaypoint.NextWaypoints.Length - 1)];
+		{
+			var candidates = CurrentWaypoint.NextWaypoints;
+			int startIdx = _rng.RandiRange(0, candidates.Length - 1);
+			for (int i = 0; i < candidates.Length; i++)
+			{
+				var candidate = candidates[(startIdx + i) % candidates.Length];
+				if (candidate != null)
+				{
+					nextWp = candidate;
+					break;
+				}
+			}
+		}
 
+		if (nextWp == null)
+		{
+			GD.PrintErr($"NpcCar: NextWaypoints on {CurrentWaypoint.Name} contains only null refs");
+			return false;
+		}
+
+		TargetWaypoint = nextWp;
 		_segmentProgress = 0f;
 		_segmentLength = CurrentWaypoint.GlobalPosition.DistanceTo(TargetWaypoint.GlobalPosition);
 		if (_segmentLength < 0.01f)
@@ -181,8 +210,8 @@ public partial class NpcCar : AnimatableBody3D
 			return false;
 
 		TravelDirection direction = CurrentWaypoint.LaneId.Contains("Oncoming")
-			? TravelDirection.Inbound
-			: TravelDirection.Outbound;
+			? TravelDirection.Outbound
+			: TravelDirection.Inbound;
 
 		if (cycler.TryGetNeighborChunk(CurrentChunk, direction, out HillChunk neighbor))
 		{
@@ -220,9 +249,6 @@ public partial class NpcCar : AnimatableBody3D
 
 	private Basis ComputeSmoothedBasis(float t)
 	{
-		if (_currentRotation == default || _targetRotation == default)
-			return GlobalTransform.Basis;
-
 		var smoothT = Mathf.Min(t * 3.0f, 1.0f);
 		var rotation = _currentRotation.Slerp(_targetRotation, smoothT);
 		return new Basis(rotation);
