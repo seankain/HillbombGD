@@ -10,7 +10,7 @@ size = Vector3(3.6000001, 2, 6.9)
 size = Vector3(4.7000003, 0.3, 2.7)
 
 [node name="NpcCar" type="AnimatableBody3D" unique_id=1700320761]
-collision_layer = 4
+collision_layer = 5
 script = ExtResource("2_npccar")
 
 [node name="shitbox" parent="." unique_id=815945097 instance=ExtResource("1_shitbox")]
