@@ -50,6 +50,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     [Export] public float JumpSpeed = 5f;           // m/s vertical impulse
     [Export] public float FallGravityMultiplier = 2.5f; // extra gravity when falling
 
+    [ExportGroup("Crash Bail")]
+    [Export] public float CrashImpactThreshold = 450f; // closing speed × mass (kg·m/s) to count as a crash
+    [Export] public float CrashBailDuration = 1.5f;    // s, time with no control before respawn
+    [Export] public float CrashWallNormalMaxY = 0.7f;  // ignore impacts whose normal is more vertical than this (floors/landings)
+    [Export] public float CrashGroundFriction = 2.5f;  // how quickly the bailing board bleeds off momentum on the ground
+
     [ExportGroup("Raycasts")]
     [Export] public RayCast3D FrontTruckRay;
     [Export] public RayCast3D RearTruckRay;
@@ -65,10 +71,13 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     private float _slideYawOffset;
     private float _slideDirection;
     private float _airSpinOffset;
+    private bool _isCrashed;     // true during a crash bail (no control until respawn)
+    private float _crashTimer;   // s remaining in the current bail
 
     // Debug-readable state ────────────────────────────────────────────────────
     public bool Grounded { get; private set; }
     public bool IsSliding => _isSliding;
+    public bool IsCrashed => _isCrashed;
     public float LeanAngle => _leanAngle;
     public Vector3 CurrentSurfaceNormal { get; private set; }
     public float SlopeAngle { get; private set; }
@@ -78,6 +87,7 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
 
     private AnimationPlayer _animPlayer;
+    private CameraController _camera;
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -85,11 +95,16 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     public override void _Ready()
     {
         _animPlayer = GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+        _camera = GetNodeOrNull<CameraController>("CameraController");
         _yaw = 0f;
     }
 
     public override void _Input(InputEvent @event)
     {
+        // No board control while bailing from a crash.
+        if (_isCrashed)
+            return;
+
         if (@event.IsActionPressed("Reset"))
             Respawn();
     }
@@ -97,6 +112,15 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     public override void _PhysicsProcess(double delta)
     {
         float dt = (float)delta;
+
+        // While bailing from a crash the player has no control over board or
+        // camera; just let the board settle until the bail timer elapses.
+        if (_isCrashed)
+        {
+            UpdateCrash(dt);
+            return;
+        }
+
         bool grounded = IsOnFloor();
         Grounded = grounded;
         Vector3 normal = GetSurfaceNormal();
@@ -216,7 +240,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         }
 
         Velocity = velocity;
+        Vector3 preMoveVelocity = velocity;
         MoveAndSlide();
+
+        // A hard enough collision this frame ends the run in a crash bail.
+        if (CheckForCrash(preMoveVelocity))
+            return;
 
         // _speed is purely physics-driven; do NOT sync it back from Velocity.
         // Only track vertical velocity when airborne for correct jump arcs.
@@ -282,6 +311,79 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
             _animPlayer.Play("TurnRight");
     }
 
+    /// <summary>
+    /// Inspects this frame's slide collisions and, if any impact exceeds the
+    /// crash threshold, enters the crash bail state. Floor/landing impacts
+    /// (near-vertical normals) are ignored so only head-on hits against walls,
+    /// cars, and obstacles can crash the rider.
+    /// </summary>
+    /// <param name="preMoveVelocity">Velocity before MoveAndSlide deflected it.</param>
+    /// <returns>True if a crash was triggered this frame.</returns>
+    private bool CheckForCrash(Vector3 preMoveVelocity)
+    {
+        int count = GetSlideCollisionCount();
+        for (int i = 0; i < count; i++)
+        {
+            KinematicCollision3D collision = GetSlideCollision(i);
+            Vector3 normal = collision.GetNormal();
+
+            // Skip floor/landing contacts; only roughly-horizontal impacts crash.
+            if (Mathf.Abs(normal.Y) > CrashWallNormalMaxY)
+                continue;
+
+            // Closing speed into the surface, relative to a (possibly moving) collider.
+            Vector3 relativeVelocity = preMoveVelocity - collision.GetColliderVelocity();
+            float closingSpeed = -relativeVelocity.Dot(normal);
+            if (closingSpeed <= 0f)
+                continue;
+
+            float impactForce = closingSpeed * Mass;
+            if (impactForce >= CrashImpactThreshold)
+            {
+                EnterCrash();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void EnterCrash()
+    {
+        _isCrashed = true;
+        _crashTimer = CrashBailDuration;
+        _isSliding = false;
+
+        // Lock the camera so the player loses camera control during the bail.
+        if (_camera != null)
+            _camera.Frozen = true;
+    }
+
+    /// <summary>
+    /// Runs while crashed: no player input is read. The board keeps its
+    /// post-impact momentum, falls under gravity, and bleeds off speed on the
+    /// ground until the bail timer elapses, at which point the rider respawns.
+    /// </summary>
+    private void UpdateCrash(float dt)
+    {
+        Vector3 velocity = Velocity;
+        if (IsOnFloor())
+        {
+            velocity.X = Mathf.Lerp(velocity.X, 0f, CrashGroundFriction * dt);
+            velocity.Z = Mathf.Lerp(velocity.Z, 0f, CrashGroundFriction * dt);
+        }
+        else
+        {
+            velocity.Y -= gravity * dt;
+        }
+
+        Velocity = velocity;
+        MoveAndSlide();
+
+        _crashTimer -= dt;
+        if (_crashTimer <= 0f)
+            Respawn();
+    }
+
     private void Respawn()
     {
         var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
@@ -298,6 +400,12 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         _slideYawOffset = 0f;
         _slideDirection = 0f;
         _airSpinOffset = 0f;
+        _isCrashed = false;
+        _crashTimer = 0f;
+
+        // Restore camera tracking after the bail.
+        if (_camera != null)
+            _camera.Frozen = false;
     }
 }
 

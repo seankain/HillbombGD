@@ -53,9 +53,11 @@ The main challenge is entry detection — the transition from ground to wall nee
 
 ## Crash / Collision Response
 
-**Priority: High** — Required for the score-reset loop.
+**Status: Implemented (crash bail).** Remaining: tuning, bump response, animation/ragdoll, score display.
 
 Differentiate between minor bumps and crashes based on impact force.
+
+The crash bail is implemented in `BoardController` (`CheckForCrash` / `EnterCrash` / `UpdateCrash`): hard horizontal impacts above `CrashImpactThreshold` disable board and camera control for `CrashBailDuration` before respawning. Still open: a sub-threshold "bump" response (speed reduction / yaw perturbation) and a crash animation / score display.
 
 Implementation approach:
 - Override `_PhysicsProcess` to check collision info from `MoveAndSlide()` via `GetSlideCollisionCount()` / `GetSlideCollision()`

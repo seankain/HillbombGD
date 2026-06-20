@@ -28,15 +28,17 @@ Future inputs (not yet bound):
 
 Score increases proportional to distance traveled down the hill. Resets to zero on crash. No combo system or trick scoring in the base design — the game is about survival and speed management, not trick chains.
 
-## Crash System (Not Yet Implemented)
+## Crash System
 
 A crash occurs when a collision's impact force exceeds a threshold. Light bumps (glancing off a trash can, clipping a curb) should jostle the player but not end the run. Head-on collisions with cars, walls, or pedestrians at speed should crash.
+
+The crash bail is implemented in `BoardController`: after `MoveAndSlide()`, each slide collision's closing speed (relative velocity into the surface) is scaled by mass to an impact force. Near-vertical contacts (floors, landings) are ignored so only roughly head-on impacts crash. Above `CrashImpactThreshold` the rider enters a bail — input and camera tracking are disabled for `CrashBailDuration` while the board settles, then `Respawn()` fires.
 
 Design considerations:
 - Impact force = relative velocity dot collision normal, scaled by mass
 - Need a tunable threshold that feels fair — the player should always understand why they crashed
-- Brief crash animation / ragdoll before respawn
-- Score display on crash (high score tracking)
+- Brief crash animation / ragdoll before respawn (animation not yet added)
+- Score display on crash (high score tracking) (not yet added)
 
 ## Speed Management
 
