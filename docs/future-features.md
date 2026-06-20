@@ -18,17 +18,20 @@ Key design question: should powerslide be a binary toggle (hold button) or analo
 
 ## Grind System
 
-**Priority: Medium** — Adds depth to obstacle interaction.
+**Status: Implemented.** Remaining: authoring grindable rails into hill chunks, grind sound, and score integration.
 
-The player can grind on rails, ledges, and certain edges by jumping onto them at an appropriate angle. Grinding locks the player to the grind path and maintains speed (or accelerates slightly downhill).
+The player can grind on rails, ledges, and certain edges by riding onto them along their length. Grinding locks the player to the grind path and accelerates slightly downhill while a balance mini-game runs.
 
-Implementation approach:
-- Tag grindable surfaces with a `Grindable` group or metadata
-- On collision/overlap with a grindable while airborne or at a shallow angle, enter grind state
-- Grind state: project `_speed` along the grind path's tangent, lock lateral position to the path
-- Balance mechanic: optional lean-to-balance during grinds (lean too far = bail)
-- Exit: jump off, reach end of rail, or lose balance
-- Grind paths can be defined as `Path3D` nodes attached to rail/ledge geometry
+Implemented in `BoardController` (`TryEnterGrind` / `EnterGrind` / `UpdateGrind` / `ExitGrind` / `BailGrind`):
+- Grindable geometry is tagged with the `Grindable` group. The rail line is a `Path3D`, resolved from the grindable node via a `grind_path` NodePath metadata, by the grindable being a `Path3D` itself, or as a descendant `Path3D`.
+- Entry: after `MoveAndSlide`, slide collisions are scanned for a grindable. The board latches on if it has at least `GrindMinEntrySpeed` and is travelling within `GrindMaxAlignmentAngleDeg` of the rail tangent (so you must approach along the rail, not across it). Grind entry takes priority over crash detection.
+- Grind state: the board is pinned to the curve (`Curve3D.GetClosestOffset` / `SampleBaked`) at `GrindHeightOffset` above the rail, `_speed` is driven along the tangent (gravity downhill minus `GrindFriction`, floored at `GrindMinSpeed`), and `_yaw` is set from the tangent so exit momentum is correct.
+- Balance: `_grindBalance` tilts with an instability term (`GrindBalanceInstabilityDeg`) plus random noise (`GrindBalanceNoiseDeg`); the player counters with lean (`GrindBalanceControl`). Exceeding `GrindBalanceLimitDeg` bails into a crash.
+- Exit: jump off (`ExitGrind(true)` adds `JumpSpeed`), reach either end of the rail, or lose balance (`BailGrind` → `EnterCrash`). A `GrindReentryCooldown` prevents instantly re-latching.
+
+To author a grindable surface:
+1. Add a body with collision (e.g. `StaticBody3D`) for the rail geometry and put it in the `Grindable` group.
+2. Add a `Path3D` describing the rail line (as a child of the grindable, or referenced via a `grind_path` metadata NodePath).
 
 Surfaces to grind:
 - Stair rails (straight, downhill)

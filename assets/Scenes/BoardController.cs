@@ -56,6 +56,19 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     [Export] public float CrashWallNormalMaxY = 0.7f;  // ignore impacts whose normal is more vertical than this (floors/landings)
     [Export] public float CrashGroundFriction = 2.5f;  // how quickly the bailing board bleeds off momentum on the ground
 
+    [ExportGroup("Grind")]
+    [Export] public float GrindMinEntrySpeed = 4f;       // m/s, minimum speed to latch onto a rail
+    [Export] public float GrindMaxAlignmentAngleDeg = 45f;// max angle between travel and rail to enter
+    [Export] public float GrindHeightOffset = 0.12f;     // m, how far the board sits above the rail line
+    [Export] public float GrindFriction = 0.5f;          // m/s², speed bleed while grinding (flat rail)
+    [Export] public float GrindMinSpeed = 3f;            // m/s, grind never slows below this
+    [Export] public float GrindBalanceInstabilityDeg = 200f; // deg/s² per rad of tilt; how fast you tip over
+    [Export] public float GrindBalanceControl = 6f;      // rad/s² of corrective accel from lean input
+    [Export] public float GrindBalanceDamping = 2f;      // 1/s, balance velocity damping
+    [Export] public float GrindBalanceNoiseDeg = 35f;    // deg/s², random destabilizing nudge
+    [Export] public float GrindBalanceLimitDeg = 22f;    // deg, tilt beyond this bails the grind
+    [Export] public float GrindReentryCooldown = 0.4f;   // s, lockout after leaving a rail
+
     [ExportGroup("Raycasts")]
     [Export] public RayCast3D FrontTruckRay;
     [Export] public RayCast3D RearTruckRay;
@@ -73,11 +86,19 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
     private float _airSpinOffset;
     private bool _isCrashed;     // true during a crash bail (no control until respawn)
     private float _crashTimer;   // s remaining in the current bail
+    private bool _isGrinding;    // true while locked onto a grind rail
+    private Path3D _grindPath;   // the rail's path being ridden
+    private float _grindOffset;  // baked distance along the rail curve
+    private int _grindDir;       // +1/-1, travel direction along the curve's natural offset
+    private float _grindBalance; // rad, board tilt while grinding (0 = balanced)
+    private float _grindBalanceVel; // rad/s, rate of tilt change
+    private float _grindCooldown;// s, re-entry lockout after leaving a rail
 
     // Debug-readable state ────────────────────────────────────────────────────
     public bool Grounded { get; private set; }
     public bool IsSliding => _isSliding;
     public bool IsCrashed => _isCrashed;
+    public bool IsGrinding => _isGrinding;
     public float LeanAngle => _leanAngle;
     public Vector3 CurrentSurfaceNormal { get; private set; }
     public float SlopeAngle { get; private set; }
@@ -120,6 +141,17 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
             UpdateCrash(dt);
             return;
         }
+
+        // While grinding the board is locked to the rail path; balance + jump are
+        // the only inputs, handled entirely in UpdateGrind.
+        if (_isGrinding)
+        {
+            UpdateGrind(dt);
+            return;
+        }
+
+        if (_grindCooldown > 0f)
+            _grindCooldown -= dt;
 
         bool grounded = IsOnFloor();
         Grounded = grounded;
@@ -242,6 +274,11 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         Velocity = velocity;
         Vector3 preMoveVelocity = velocity;
         MoveAndSlide();
+
+        // Latching onto a rail takes priority over crashing: a grindable contact
+        // becomes a grind instead of a bail when approached along the rail.
+        if (_grindCooldown <= 0f && TryEnterGrind(preMoveVelocity))
+            return;
 
         // A hard enough collision this frame ends the run in a crash bail.
         if (CheckForCrash(preMoveVelocity))
@@ -384,6 +421,218 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
             Respawn();
     }
 
+    // ── Grind ───────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Inspects this frame's slide collisions for a grindable rail and, if the
+    /// board has enough speed and is travelling roughly along the rail, latches
+    /// onto it. Grindable geometry is tagged with the "Grindable" group and
+    /// carries a <see cref="Path3D"/> (via a "grind_path" NodePath metadata, by
+    /// being a Path3D itself, or as a descendant) describing the rail line.
+    /// </summary>
+    /// <param name="preMoveVelocity">Velocity before MoveAndSlide deflected it.</param>
+    /// <returns>True if a grind was entered this frame.</returns>
+    private bool TryEnterGrind(Vector3 preMoveVelocity)
+    {
+        if (_speed < GrindMinEntrySpeed)
+            return false;
+
+        int count = GetSlideCollisionCount();
+        for (int i = 0; i < count; i++)
+        {
+            Path3D path = FindGrindPath(GetSlideCollision(i).GetCollider());
+            if (path?.Curve == null || path.Curve.GetBakedLength() <= 0f)
+                continue;
+
+            // Offset of the closest point on the rail to the board.
+            Vector3 local = path.ToLocal(GlobalPosition);
+            float offset = path.Curve.GetClosestOffset(local);
+
+            // Rail tangent (world) in its natural increasing-offset direction.
+            Vector3 tangent = GrindNaturalTangent(path, offset);
+            Vector3 tangentH = new Vector3(tangent.X, 0f, tangent.Z);
+            Vector3 travelH  = new Vector3(preMoveVelocity.X, 0f, preMoveVelocity.Z);
+            if (tangentH.LengthSquared() < 1e-6f || travelH.LengthSquared() < 1e-6f)
+                continue;
+
+            tangentH = tangentH.Normalized();
+            travelH  = travelH.Normalized();
+
+            // Must be approaching roughly along the rail, not across it.
+            float alignment = travelH.Dot(tangentH);
+            if (Mathf.Abs(alignment) < Mathf.Cos(Mathf.DegToRad(GrindMaxAlignmentAngleDeg)))
+                continue;
+
+            EnterGrind(path, offset, alignment >= 0f ? 1 : -1);
+            return true;
+        }
+        return false;
+    }
+
+    private void EnterGrind(Path3D path, float offset, int dir)
+    {
+        _isGrinding   = true;
+        _isSliding    = false;
+        _grindPath    = path;
+        _grindOffset  = offset;
+        _grindDir     = dir;
+        _grindBalance = 0f;
+        _grindBalanceVel = 0f;
+        _airVelY      = 0f;
+        _slideYawOffset = 0f;
+        _airSpinOffset = 0f;
+        _speed        = Mathf.Max(_speed, GrindMinSpeed);
+    }
+
+    /// <summary>
+    /// Runs each frame while grinding. The board is pinned to the rail curve and
+    /// driven along its tangent, accelerating downhill and bleeding a little
+    /// friction. A balance mini-game runs in parallel: lean to counter the tilt,
+    /// or bail when it exceeds the limit. Exits on jump, reaching a rail end, or
+    /// losing balance.
+    /// </summary>
+    private void UpdateGrind(float dt)
+    {
+        Curve3D curve = _grindPath?.Curve;
+        if (curve == null || curve.GetBakedLength() <= 0f)
+        {
+            ExitGrind(false);
+            return;
+        }
+
+        float length = curve.GetBakedLength();
+        Vector3 tangent = GrindNaturalTangent(_grindPath, _grindOffset) * _grindDir;
+
+        // ── Speed along the rail: gravity downhill minus a little friction. ──────
+        float slope = Mathf.Asin(Mathf.Clamp(-tangent.Y, -1f, 1f));
+        _speed += (gravity * Mathf.Sin(slope) - GrindFriction) * dt;
+        _speed = Mathf.Max(_speed, GrindMinSpeed);
+
+        // ── Balance mini-game ───────────────────────────────────────────────────
+        float leanInput = Input.GetAxis("Left", "Right");
+        float instability = Mathf.DegToRad(GrindBalanceInstabilityDeg);
+        float noise = Mathf.DegToRad(GrindBalanceNoiseDeg);
+        _grindBalanceVel += _grindBalance * instability * dt;          // tips over faster as it leans
+        _grindBalanceVel += leanInput * GrindBalanceControl * dt;      // player correction
+        _grindBalanceVel += (GD.Randf() * 2f - 1f) * noise * dt;       // random wobble
+        _grindBalanceVel *= Mathf.Exp(-GrindBalanceDamping * dt);
+        _grindBalance += _grindBalanceVel * dt;
+
+        if (Mathf.Abs(_grindBalance) > Mathf.DegToRad(GrindBalanceLimitDeg))
+        {
+            BailGrind();
+            return;
+        }
+
+        // ── Jump off the rail ───────────────────────────────────────────────────
+        if (Input.IsActionJustPressed("Jump"))
+        {
+            ExitGrind(true);
+            return;
+        }
+
+        // ── Advance along the rail; leaving either end ends the grind. ──────────
+        _grindOffset += _speed * _grindDir * dt;
+        if (_grindOffset <= 0f || _grindOffset >= length)
+        {
+            _grindOffset = Mathf.Clamp(_grindOffset, 0f, length);
+            ExitGrind(false);
+            return;
+        }
+
+        // ── Pin the board to the rail and orient it along the tangent. ──────────
+        Vector3 railPoint = _grindPath.ToGlobal(curve.SampleBaked(_grindOffset));
+        GlobalPosition = railPoint + Vector3.Up * GrindHeightOffset;
+
+        _yaw = Mathf.Atan2(tangent.X, tangent.Z);
+        _leanAngle = _grindBalance;
+        Velocity = new Vector3(tangent.X, tangent.Y, tangent.Z) * _speed;
+
+        UpdateOrientation(Vector3.Up, dt);
+    }
+
+    /// <summary>Leaves the rail, converting rail momentum back into the free-movement state.</summary>
+    private void ExitGrind(bool jumped)
+    {
+        Vector3 travel = GrindNaturalTangent(_grindPath, _grindOffset) * _grindDir;
+        _yaw     = Mathf.Atan2(travel.X, travel.Z);
+        _airVelY = travel.Y * _speed;
+        if (jumped)
+            _airVelY += JumpSpeed;
+
+        _isGrinding = false;
+        _grindPath = null;
+        _grindBalance = 0f;
+        _grindBalanceVel = 0f;
+        _grindCooldown = GrindReentryCooldown;
+    }
+
+    /// <summary>Lost balance: drop grind state and fall into a crash bail.</summary>
+    private void BailGrind()
+    {
+        _isGrinding = false;
+        _grindPath = null;
+        _grindBalance = 0f;
+        _grindBalanceVel = 0f;
+        _grindCooldown = GrindReentryCooldown;
+        EnterCrash();
+    }
+
+    /// <summary>World-space tangent of a rail curve at a baked offset, in the curve's natural direction.</summary>
+    private static Vector3 GrindNaturalTangent(Path3D path, float offset)
+    {
+        Curve3D curve = path.Curve;
+        float length = curve.GetBakedLength();
+        const float eps = 0.05f;
+        Vector3 a = path.ToGlobal(curve.SampleBaked(Mathf.Clamp(offset - eps, 0f, length)));
+        Vector3 b = path.ToGlobal(curve.SampleBaked(Mathf.Clamp(offset + eps, 0f, length)));
+        Vector3 t = b - a;
+        return t.LengthSquared() > 1e-6f ? t.Normalized() : Vector3.Forward;
+    }
+
+    /// <summary>
+    /// Resolves the grind <see cref="Path3D"/> for a collider, or null if the
+    /// collider is not part of a grindable. Climbs to the nearest ancestor in the
+    /// "Grindable" group, then resolves its rail path.
+    /// </summary>
+    private static Path3D FindGrindPath(GodotObject colliderObj)
+    {
+        if (colliderObj is not Node node)
+            return null;
+
+        Node grindable = node;
+        while (grindable != null && !grindable.IsInGroup("Grindable"))
+            grindable = grindable.GetParent();
+        if (grindable == null)
+            return null;
+
+        if (grindable.HasMeta("grind_path"))
+        {
+            var np = grindable.GetMeta("grind_path").As<NodePath>();
+            var p = grindable.GetNodeOrNull<Path3D>(np);
+            if (p != null)
+                return p;
+        }
+
+        if (grindable is Path3D self)
+            return self;
+
+        return FindFirstPath3D(grindable);
+    }
+
+    private static Path3D FindFirstPath3D(Node node)
+    {
+        foreach (Node child in node.GetChildren())
+        {
+            if (child is Path3D path)
+                return path;
+            Path3D nested = FindFirstPath3D(child);
+            if (nested != null)
+                return nested;
+        }
+        return null;
+    }
+
     private void Respawn()
     {
         var respawn = GetTree().GetNodesInGroup("Respawn")[0] as Node3D;
@@ -402,6 +651,13 @@ public partial class BoardController : CharacterBody3D, IRespawnablePlayer
         _airSpinOffset = 0f;
         _isCrashed = false;
         _crashTimer = 0f;
+        _isGrinding = false;
+        _grindPath = null;
+        _grindOffset = 0f;
+        _grindDir = 0;
+        _grindBalance = 0f;
+        _grindBalanceVel = 0f;
+        _grindCooldown = 0f;
 
         // Restore camera tracking after the bail.
         if (_camera != null)
