@@ -13,7 +13,6 @@
 [ext_resource type="PackedScene" uid="uid://bxi2xf7fmjfte" path="res://assets/models/Environment/Buildings/Prefab/House1.tscn" id="9_qvyfe"]
 [ext_resource type="PackedScene" uid="uid://4516aixqo4ud" path="res://assets/models/Environment/Buildings/Prefab/House2.tscn" id="11_3ep40"]
 [ext_resource type="PackedScene" uid="uid://yky24s2kse7d" path="res://assets/Scenes/traffic_signal.tscn" id="11_sed2y"]
-[ext_resource type="Script" uid="uid://dl2ulm2pt3hu6" path="res://assets/Scripts/TrafficSignal.cs" id="12_rtmc7"]
 [ext_resource type="PackedScene" uid="uid://cone1uqdmqf4i" path="res://assets/models/Environment/Buildings/sf_house3.glb" id="12_ygw1s"]
 [ext_resource type="Script" uid="uid://bbf44cu3gnh1n" path="res://assets/Scripts/ChunkTrigger.cs" id="13_0kkut"]
 [ext_resource type="PackedScene" uid="uid://df6i2vde8dtm3" path="res://assets/models/Environment/Buildings/Prefab/House3.tscn" id="14_owvnk"]
@@ -173,7 +172,6 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -8, 
 
 [node name="IntersectionLeftTrafficSignal" parent="Intersection" unique_id=1973241544 instance=ExtResource("11_sed2y")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 8, 4, 0)
-script = ExtResource("12_rtmc7")
 
 [node name="TrafficLightController" type="Node3D" parent="Intersection" unique_id=746088544 node_paths=PackedStringArray("StraightOutgoing", "StraightIncoming", "CrossRight", "CrossLeft")]
 script = ExtResource("20_tlc")
