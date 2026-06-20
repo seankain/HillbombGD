@@ -10,6 +10,13 @@ public partial class CameraController : Node3D
 	[Export]
 	public float PercentPerFrame = 0.3f;
 
+	/// <summary>
+	/// When true the camera stops tracking its target and holds its current
+	/// position. Used during a crash bail so the player loses camera control
+	/// for the duration of the bail before respawn.
+	/// </summary>
+	public bool Frozen { get; set; }
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -22,6 +29,9 @@ public partial class CameraController : Node3D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (Frozen)
+			return;
+
 		this.Position = LerpVector3(this.Position, TrackedNode.Position, PercentPerFrame);
 	}
 
