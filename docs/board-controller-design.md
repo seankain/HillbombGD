@@ -80,6 +80,16 @@ When airborne:
 - Forward speed experiences only air drag (no rolling resistance or slope gravity)
 - `_airVelY` is synced back from `Velocity.Y` after `MoveAndSlide()` to let the engine handle landing
 
+## Grind
+
+Grinding latches the board onto a rail and rides it, replacing the normal free-movement update while active (`UpdateGrind` returns early from `_PhysicsProcess`, mirroring the crash bail).
+
+Rails are `Path3D` curves on geometry tagged with the `Grindable` group. After `MoveAndSlide`, slide collisions are scanned (`TryEnterGrind`): a grindable contact becomes a grind — taking priority over crash detection — when the board has at least `GrindMinEntrySpeed` and is travelling within `GrindMaxAlignmentAngleDeg` of the rail tangent. The approach-alignment gate is what makes a rail feel grindable when ridden along but solid (crashable) when hit across.
+
+While grinding, the board is pinned to the curve rather than moved by `MoveAndSlide`. `Curve3D.GetClosestOffset` finds where on the rail the board entered; each frame `_grindOffset` advances by `_speed · _grindDir · dt` and the board is snapped to `SampleBaked(offset)` plus `GrindHeightOffset`. Reusing the scalar `_speed` and `_yaw` state (yaw is reconstructed from the tangent each frame) means exit flows seamlessly back into the free-movement model — `ExitGrind` just converts the rail tangent into `_yaw` and `_airVelY`.
+
+A balance mini-game runs in parallel: `_grindBalance` is an unstable tilt that diverges proportionally to itself (`GrindBalanceInstabilityDeg`) with added noise, and the player counters with lean input (`GrindBalanceControl`). This reuses the lean coupling for the visual tilt (`_leanAngle = _grindBalance`). Exceeding `GrindBalanceLimitDeg` calls `BailGrind`, which drops into the existing crash bail. The grind ends on jump (adds `JumpSpeed`), reaching either rail end, or a bail; `GrindReentryCooldown` blocks immediate re-latching.
+
 ## Surface Detection
 
 Two raycasts (`FrontTruckRay`, `RearTruckRay`) positioned at the front and rear truck locations sample the terrain normal. When both hit, the normals are averaged to produce a smooth surface orientation. This drives:

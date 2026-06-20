@@ -12,6 +12,7 @@ public partial class DebugHud : Control
     private Label _surfaceNormalVal;
     private Label _slopeAngleVal;
     private Label _slidingVal;
+    private Label _grindingVal;
 
     public override void _Ready()
     {
@@ -26,6 +27,7 @@ public partial class DebugHud : Control
         _surfaceNormalVal = GetNode<Label>("VBoxContainer/SurfaceNormalHBox/SurfaceNormalValue");
         _slopeAngleVal    = GetNode<Label>("VBoxContainer/SlopeAngleHBox/SlopeAngleValue");
         _slidingVal       = GetNodeOrNull<Label>("VBoxContainer/SlidingHBox/SlidingValue");
+        _grindingVal      = GetNodeOrNull<Label>("VBoxContainer/GrindingHBox/GrindingValue");
     }
 
     public override void _Process(double delta)
@@ -59,5 +61,8 @@ public partial class DebugHud : Control
 
         if (_slidingVal != null)
             _slidingVal.Text = _board.IsSliding ? "YES" : "NO";
+
+        if (_grindingVal != null)
+            _grindingVal.Text = _board.IsGrinding ? "YES" : "NO";
     }
 }
