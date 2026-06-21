@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://dvihxldhw0isd"]
+
+[ext_resource type="ArrayMesh" uid="uid://d3kkaoo4fb2n5" path="res://assets/models/Environment/Obstacles/railing_Cylinder.res" id="1_5b3c5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5b3c5"]
+albedo_color = Color(0, 0.44705883, 1, 1)
+metallic = 1.0
+metallic_specular = 0.32
+roughness = 0.4
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qci5s"]
+size = Vector3(0.06573486, 1.0374756, 3.0131989)
+
+[sub_resource type="Curve3D" id="Curve3D_5b3c5"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 1.01, 1.485, 0, 0, 0, 0, 0, 0, 0, 1, -1.5),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[node name="Railing" type="StaticBody3D" unique_id=276310350]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=545092755]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = ExtResource("1_5b3c5")
+skeleton = NodePath("")
+surface_material_override/0 = SubResource("StandardMaterial3D_5b3c5")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=428068408]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0009460449, 0.5187378, -0.0018692017)
+shape = SubResource("BoxShape3D_qci5s")
+
+[node name="Path3D" type="Path3D" parent="." unique_id=913461953 groups=["Grindable"]]
+curve = SubResource("Curve3D_5b3c5")

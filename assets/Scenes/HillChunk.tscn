@@ -21,6 +21,7 @@
 [ext_resource type="Script" uid="uid://cancwvqkx5mm4" path="res://assets/Scripts/TrafficSpawner.cs" id="19_sed2y"]
 [ext_resource type="Script" uid="uid://1mdi1d2lewqh" path="res://assets/Scripts/TrafficLightController.cs" id="20_tlc"]
 [ext_resource type="Script" uid="uid://cxiwbpeieqd4j" path="res://assets/Scripts/TrafficWaypoint.cs" id="21_twp"]
+[ext_resource type="PackedScene" uid="uid://dvihxldhw0isd" path="res://assets/models/Environment/Obstacles/Railing.tscn" id="22_wnxse"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -398,5 +399,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -9.8, 34)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.51660156, -21.0153, 105.982)
 script = ExtResource("19_sed2y")
 SpawnPoints = [NodePath("../CrossRightEntry"), NodePath("../CrossLeftEntry"), NodePath("../OutgoingEntry"), NodePath("../OncomingEntry")]
+
+[node name="Railing" parent="." unique_id=276310350 instance=ExtResource("22_wnxse")]
+transform = Transform3D(1, 0, 0, 0, 0.9396927, -0.3420202, 0, 0.3420202, 0.9396927, -7.5, -15.8, 53)
 
 [editable path="Street/street_apron"]
