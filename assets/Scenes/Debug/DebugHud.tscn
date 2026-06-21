@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://ppi68pxhxesa"]
+[gd_scene format=3 uid="uid://ppi68pxhxesa"]
 
-[ext_resource type="Script" path="res://assets/Scenes/Debug/DebugHud.cs" id="1_dbghd"]
+[ext_resource type="Script" uid="uid://bygl1exwtq7f3" path="res://assets/Scenes/Debug/DebugHud.cs" id="1_dbghd"]
 
-[node name="Control" type="Control"]
+[node name="Control" type="Control" unique_id=1340511945]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,97 +12,107 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_dbghd")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=972316028]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 400.0
 offset_bottom = 200.0
 
-[node name="FrontRayHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="FrontRayHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=845287756]
 layout_mode = 2
 
-[node name="FrontRayLabel" type="Label" parent="VBoxContainer/FrontRayHBox"]
+[node name="FrontRayLabel" type="Label" parent="VBoxContainer/FrontRayHBox" unique_id=35249916]
 layout_mode = 2
 text = "Front Truck Ray: "
 
-[node name="FrontRayValue" type="Label" parent="VBoxContainer/FrontRayHBox"]
+[node name="FrontRayValue" type="Label" parent="VBoxContainer/FrontRayHBox" unique_id=398694856]
 layout_mode = 2
 text = "---"
 
-[node name="RearRayHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="RearRayHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=577545676]
 layout_mode = 2
 
-[node name="RearRayLabel" type="Label" parent="VBoxContainer/RearRayHBox"]
+[node name="RearRayLabel" type="Label" parent="VBoxContainer/RearRayHBox" unique_id=1677470745]
 layout_mode = 2
 text = "Rear Truck Ray: "
 
-[node name="RearRayValue" type="Label" parent="VBoxContainer/RearRayHBox"]
+[node name="RearRayValue" type="Label" parent="VBoxContainer/RearRayHBox" unique_id=1408665825]
 layout_mode = 2
 text = "---"
 
-[node name="GroundedHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="GroundedHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=1029116711]
 layout_mode = 2
 
-[node name="GroundedLabel" type="Label" parent="VBoxContainer/GroundedHBox"]
+[node name="GroundedLabel" type="Label" parent="VBoxContainer/GroundedHBox" unique_id=457684446]
 layout_mode = 2
 text = "Grounded: "
 
-[node name="GroundedValue" type="Label" parent="VBoxContainer/GroundedHBox"]
+[node name="GroundedValue" type="Label" parent="VBoxContainer/GroundedHBox" unique_id=1313500235]
 layout_mode = 2
 text = "---"
 
-[node name="VelocityHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="VelocityHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=1785018346]
 layout_mode = 2
 
-[node name="VelocityLabel" type="Label" parent="VBoxContainer/VelocityHBox"]
+[node name="VelocityLabel" type="Label" parent="VBoxContainer/VelocityHBox" unique_id=832046656]
 layout_mode = 2
 text = "Velocity: "
 
-[node name="VelocityValue" type="Label" parent="VBoxContainer/VelocityHBox"]
+[node name="VelocityValue" type="Label" parent="VBoxContainer/VelocityHBox" unique_id=734740910]
 layout_mode = 2
 text = "---"
 
-[node name="LeanHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="LeanHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=492630077]
 layout_mode = 2
 
-[node name="LeanLabel" type="Label" parent="VBoxContainer/LeanHBox"]
+[node name="LeanLabel" type="Label" parent="VBoxContainer/LeanHBox" unique_id=1040081580]
 layout_mode = 2
 text = "Lean: "
 
-[node name="LeanValue" type="Label" parent="VBoxContainer/LeanHBox"]
+[node name="LeanValue" type="Label" parent="VBoxContainer/LeanHBox" unique_id=1525099846]
 layout_mode = 2
 text = "---"
 
-[node name="SurfaceNormalHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="SurfaceNormalHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=642642176]
 layout_mode = 2
 
-[node name="SurfaceNormalLabel" type="Label" parent="VBoxContainer/SurfaceNormalHBox"]
+[node name="SurfaceNormalLabel" type="Label" parent="VBoxContainer/SurfaceNormalHBox" unique_id=1439794325]
 layout_mode = 2
 text = "Surface Normal: "
 
-[node name="SurfaceNormalValue" type="Label" parent="VBoxContainer/SurfaceNormalHBox"]
+[node name="SurfaceNormalValue" type="Label" parent="VBoxContainer/SurfaceNormalHBox" unique_id=1039202190]
 layout_mode = 2
 text = "---"
 
-[node name="SlopeAngleHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="SlopeAngleHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=731911167]
 layout_mode = 2
 
-[node name="SlopeAngleLabel" type="Label" parent="VBoxContainer/SlopeAngleHBox"]
+[node name="SlopeAngleLabel" type="Label" parent="VBoxContainer/SlopeAngleHBox" unique_id=1383442996]
 layout_mode = 2
 text = "Slope Angle: "
 
-[node name="SlopeAngleValue" type="Label" parent="VBoxContainer/SlopeAngleHBox"]
+[node name="SlopeAngleValue" type="Label" parent="VBoxContainer/SlopeAngleHBox" unique_id=1617096606]
 layout_mode = 2
 text = "---"
 
-[node name="SlidingHBox" type="HBoxContainer" parent="VBoxContainer"]
+[node name="SlidingHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=170842528]
 layout_mode = 2
 
-[node name="SlidingLabel" type="Label" parent="VBoxContainer/SlidingHBox"]
+[node name="SlidingLabel" type="Label" parent="VBoxContainer/SlidingHBox" unique_id=681692770]
 layout_mode = 2
 text = "Sliding: "
 
-[node name="SlidingValue" type="Label" parent="VBoxContainer/SlidingHBox"]
+[node name="SlidingValue" type="Label" parent="VBoxContainer/SlidingHBox" unique_id=1128629169]
 layout_mode = 2
 text = "---"
+
+[node name="GrindingHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=1158060035]
+layout_mode = 2
+
+[node name="GridingLabel" type="Label" parent="VBoxContainer/GrindingHBox" unique_id=1736829939]
+layout_mode = 2
+text = "Grinding"
+
+[node name="GrindingValue" type="Label" parent="VBoxContainer/GrindingHBox" unique_id=1775745138]
+layout_mode = 2
