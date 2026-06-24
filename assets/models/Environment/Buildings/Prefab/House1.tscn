@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bxi2xf7fmjfte"]
+[gd_scene format=3 uid="uid://bxi2xf7fmjfte"]
 
 [ext_resource type="PackedScene" uid="uid://qpum5mo6wurr" path="res://assets/models/Environment/Buildings/door1.glb" id="1_lga20"]
 [ext_resource type="PackedScene" uid="uid://dab78g3ox2j7v" path="res://assets/models/Environment/Buildings/garage_with_slope.glb" id="2_78l6s"]

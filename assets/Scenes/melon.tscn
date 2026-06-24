@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://c7bnglsbxijpw"]
+[gd_scene format=3 uid="uid://c7bnglsbxijpw"]
 
 [ext_resource type="PackedScene" uid="uid://5ujof043taen" path="res://assets/models/watermelon.glb" id="1_uum32"]
 [ext_resource type="Script" uid="uid://bllk7q51wla3" path="res://assets/Scripts/Ball.cs" id="1_vs6j5"]

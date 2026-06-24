@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://ddqq1u7xo3wjt"]
+[gd_scene format=3 uid="uid://ddqq1u7xo3wjt"]
 
 [ext_resource type="PackedScene" uid="uid://blfbgnlhkkf1f" path="res://assets/models/Character/skateboard_deck.glb" id="1_fikom"]
 

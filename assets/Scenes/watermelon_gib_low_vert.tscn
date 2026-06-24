@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bq0560ohgtur"]
+[gd_scene format=3 uid="uid://bq0560ohgtur"]
 
 [ext_resource type="ArrayMesh" uid="uid://22v6yyvd0a5x" path="res://assets/models/melon_slice_gib.res" id="1_au7x3"]
 

@@ -23,6 +23,7 @@
 [ext_resource type="Script" uid="uid://cxiwbpeieqd4j" path="res://assets/Scripts/TrafficWaypoint.cs" id="21_twp"]
 [ext_resource type="PackedScene" uid="uid://dvihxldhw0isd" path="res://assets/models/Environment/Obstacles/Railing.tscn" id="22_wnxse"]
 [ext_resource type="PackedScene" uid="uid://wpoc1b7uvu1v" path="res://assets/Scenes/grind_path.tscn" id="23_b0onn"]
+[ext_resource type="Material" uid="uid://ch0bww6x7akvb" path="res://assets/materials/navmesh_debug.tres" id="24_wx5ig"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -33,6 +34,15 @@ data = PackedVector3Array(-13.3826, -0.6065, -14.0363, 14.6873, -0.2002, -14.036
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gngta"]
 size = Vector3(50, 50, 3)
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_b0onn"]
+vertices = PackedVector3Array(13.04, -28.202541, 123.18476, 13.04, -28.202541, 95.18476, 12.29, -27.952541, 95.18476, 8.04, -28.202541, 123.18476, 7.79, 1.0474586, 0.68476105, 12.29, 1.0474586, 0.68476105, 7.983548, -27.952541, 95.52347)
+polygons = [PackedInt32Array(1, 0, 2), PackedInt32Array(2, 0, 3), PackedInt32Array(3, 6, 2), PackedInt32Array(2, 6, 5), PackedInt32Array(5, 6, 4)]
+agent_height = 2.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_b0onn"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_qfue7"]
 
 [node name="HillChunk" type="Node3D" unique_id=1417364097 node_paths=PackedStringArray("ChunkStart", "ChunkEnd", "EntryTriggerArea", "ExitTriggerArea", "Spawner") groups=["Chunks"]]
 script = ExtResource("1_j880e")
@@ -406,5 +416,20 @@ transform = Transform3D(1, 0, 0, 0, 0.9396927, -0.3420202, 0, 0.3420202, 0.93969
 
 [node name="Node3D" parent="." unique_id=657898662 instance=ExtResource("23_b0onn")]
 transform = Transform3D(0.53, 0, 0, 0, 0.50684154, -0.15495698, 0, 0.15495698, 0.50684154, 7.5, -5.47, 19.3)
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=762619847]
+navigation_mesh = SubResource("NavigationMesh_b0onn")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D" unique_id=1142073752]
+transform = Transform3D(2.71, 0, 0, 0, 0.9563048, -14.618583, 0, 0.29237166, 47.81524, 10, -13.89274, 48)
+visible = false
+mesh = SubResource("PlaneMesh_b0onn")
+surface_material_override/0 = ExtResource("24_wx5ig")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="NavigationRegion3D" unique_id=97803030]
+transform = Transform3D(2.87, 0, 0, 0, 1, 0, 0, 0, 16, 10.572241, -28.702541, 107.76896)
+visible = false
+mesh = SubResource("PlaneMesh_qfue7")
+surface_material_override/0 = ExtResource("24_wx5ig")
 
 [editable path="Street/street_apron"]

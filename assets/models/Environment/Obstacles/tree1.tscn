@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bymc4e6ft43ia"]
+[gd_scene format=3 uid="uid://bymc4e6ft43ia"]
 
 [ext_resource type="PackedScene" uid="uid://c8h8yfwng3jw4" path="res://assets/models/Environment/Obstacles/tree1.glb" id="1_y0m26"]
 

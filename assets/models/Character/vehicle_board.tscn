@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://dg7np1x7g0xy6"]
+[gd_scene format=3 uid="uid://dg7np1x7g0xy6"]
 
 [ext_resource type="Script" uid="uid://c8mc7h8sv6igd" path="res://assets/models/Character/vehicle_board.cs" id="1_d2g0i"]
 [ext_resource type="PackedScene" uid="uid://ddqq1u7xo3wjt" path="res://assets/models/skateboard_deck2.tscn" id="1_eb1wy"]

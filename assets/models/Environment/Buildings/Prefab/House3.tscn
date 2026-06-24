@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://df6i2vde8dtm3"]
+[gd_scene format=3 uid="uid://df6i2vde8dtm3"]
 
 [ext_resource type="PackedScene" uid="uid://dlpgoni461vvc" path="res://assets/models/default_cube.glb" id="1_8a6fa"]
 [ext_resource type="PackedScene" uid="uid://dby5abo7cvgiq" path="res://assets/models/Environment/Buildings/single_bay.glb" id="2_vrs7b"]

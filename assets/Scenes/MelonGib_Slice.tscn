@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://r3d2ma5an1r1"]
+[gd_scene format=3 uid="uid://r3d2ma5an1r1"]
 
 [ext_resource type="PackedScene" uid="uid://dx4cksu3w8kcn" path="res://assets/models/watermelon_gib_low_vert.glb" id="1_pf646"]
 

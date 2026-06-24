@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://byfyafae7qwo2"]
+[gd_scene format=3 uid="uid://byfyafae7qwo2"]
 
 [ext_resource type="PackedScene" uid="uid://qpum5mo6wurr" path="res://assets/models/Environment/Buildings/door1.glb" id="1_ebqoq"]
 [ext_resource type="PackedScene" uid="uid://dby5abo7cvgiq" path="res://assets/models/Environment/Buildings/single_bay.glb" id="2_nk3si"]
