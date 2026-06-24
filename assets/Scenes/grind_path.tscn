@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://wpoc1b7uvu1v"]
+
+[sub_resource type="Curve3D" id="Curve3D_l0oni"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 12.155, 0, 0, 0, 0, 0, 0, 0, 0, -11.655),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l0oni"]
+albedo_color = Color(0.6862745, 0, 0, 1)
+
+[node name="Node3D" type="Node3D" unique_id=657898662 groups=["Grindable"]]
+
+[node name="Path3D" type="Path3D" parent="." unique_id=465218458]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+curve = SubResource("Curve3D_l0oni")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=621422755]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.20000029)
+use_collision = true
+size = Vector3(1, 1, 23.800001)
+material = SubResource("StandardMaterial3D_l0oni")

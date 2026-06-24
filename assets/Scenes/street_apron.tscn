@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://bav2hxq38mg2f"]
+
+[ext_resource type="PackedScene" uid="uid://n67i62e7lw50" path="res://assets/models/Environment/Buildings/street_apron.glb" id="1_2ksfm"]
+
+[sub_resource type="Curve3D" id="Curve3D_prqge"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.055, -5.63, 0, 0, 0, 0, 0, 0, 0, -0.415, -7.635),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+
+[node name="street_apron" unique_id=333100940 instance=ExtResource("1_2ksfm")]
+
+[node name="Path3D" type="Path3D" parent="Sidewalk_003" index="1" unique_id=988975709 groups=["Grindable"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8000002, 0.39999995, 9.900002)
+curve = SubResource("Curve3D_prqge")
