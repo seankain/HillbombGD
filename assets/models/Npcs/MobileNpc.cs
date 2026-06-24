@@ -24,41 +24,16 @@ public partial class MobileNpc : CharacterBody3D, IObstacleType
 	[Export]
 	public PhysicalBoneSimulator3D boneSimulator;
 
-	[Export]
-	public Node3D entrance;
-
-	/// <summary>
-	/// When true the NPC is driven by a <see cref="HumanNpcSpawner"/>: it does
-	/// not seek the building entrance on its own and lets the spawner assign
-	/// its position, speed and destinations via Activate/SetDestination.
-	/// </summary>
-	[Export]
-	public bool ManagedBySpawner = false;
-
     public ObstacleType ObstacleType => ObstacleType.Human;
 
 
     public override void _Ready()
     {
-        var root = GetTree().Root;
+		// Destinations are assigned by the HumanNpcSpawner, which picks random
+		// points on the chunk's navigation meshes.
 		navigationAgent.MaxSpeed = Speed;
 		navigationAgent.TargetReached += HandleTargetReached;
 		animationPlayer.Play("WalkPhone");
-
-		if (ManagedBySpawner)
-		{
-			// The spawner controls lifecycle and destinations.
-			return;
-		}
-
-		if(entrance == null)
-        {
-			entrance = root.GetNodeOrNull<Node3D>("/root/Main/Level/BuildingEntrance");
-        }
-		if (entrance != null)
-		{
-			navigationAgent.TargetPosition = entrance.GlobalPosition;
-		}
     }
 
 	/// <summary>Activates a pooled NPC at the given spot with the given speed.</summary>

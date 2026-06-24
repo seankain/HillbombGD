@@ -69,7 +69,6 @@ public partial class HumanNpcSpawner : Node3D
 		for (int i = 0; i < PoolSize; i++)
 		{
 			var npc = HumanNpcScene.Instantiate<MobileNpc>();
-			npc.ManagedBySpawner = true;
 			AddChild(npc);
 			npc.AddToGroup("MovableObstacles");
 			npc.OnReachedExit += HandleNpcReachedTarget;
