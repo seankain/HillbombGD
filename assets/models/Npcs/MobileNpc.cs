@@ -27,6 +27,14 @@ public partial class MobileNpc : CharacterBody3D, IObstacleType
 	[Export]
 	public Node3D entrance;
 
+	/// <summary>
+	/// When true the NPC is driven by a <see cref="HumanNpcSpawner"/>: it does
+	/// not seek the building entrance on its own and lets the spawner assign
+	/// its position, speed and destinations via Activate/SetDestination.
+	/// </summary>
+	[Export]
+	public bool ManagedBySpawner = false;
+
     public ObstacleType ObstacleType => ObstacleType.Human;
 
 
@@ -35,13 +43,61 @@ public partial class MobileNpc : CharacterBody3D, IObstacleType
         var root = GetTree().Root;
 		navigationAgent.MaxSpeed = Speed;
 		navigationAgent.TargetReached += HandleTargetReached;
+		animationPlayer.Play("WalkPhone");
+
+		if (ManagedBySpawner)
+		{
+			// The spawner controls lifecycle and destinations.
+			return;
+		}
+
 		if(entrance == null)
         {
-			entrance = root.GetNode<Node3D>("/root/Main/Level/BuildingEntrance");
+			entrance = root.GetNodeOrNull<Node3D>("/root/Main/Level/BuildingEntrance");
         }
-		navigationAgent.TargetPosition = entrance.GlobalPosition;
-		animationPlayer.Play("WalkPhone");
+		if (entrance != null)
+		{
+			navigationAgent.TargetPosition = entrance.GlobalPosition;
+		}
     }
+
+	/// <summary>Activates a pooled NPC at the given spot with the given speed.</summary>
+	public void Activate(Vector3 spawnPosition, float speed)
+	{
+		Speed = speed;
+		navigationAgent.MaxSpeed = speed;
+		GlobalPosition = spawnPosition;
+		Velocity = Vector3.Zero;
+		Enable();
+		animationPlayer.Play("WalkPhone");
+	}
+
+	/// <summary>Sets the NPC's navigation destination in world space.</summary>
+	public void SetDestination(Vector3 worldPosition)
+	{
+		navigationAgent.TargetPosition = worldPosition;
+	}
+
+	public void Enable()
+	{
+		Visible = true;
+		ProcessMode = ProcessModeEnum.Inherit;
+		SetProcess(true);
+		SetPhysicsProcess(true);
+		if (agentCollisionShape != null)
+			agentCollisionShape.Disabled = false;
+	}
+
+	public void Disable()
+	{
+		Velocity = Vector3.Zero;
+		Visible = false;
+		SetProcess(false);
+		SetPhysicsProcess(false);
+		ProcessMode = ProcessModeEnum.Disabled;
+		if (agentCollisionShape != null)
+			agentCollisionShape.Disabled = true;
+	}
 
     private void HandleTargetReached()
     {
