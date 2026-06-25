@@ -23,7 +23,9 @@
 [ext_resource type="Script" uid="uid://cxiwbpeieqd4j" path="res://assets/Scripts/TrafficWaypoint.cs" id="21_twp"]
 [ext_resource type="PackedScene" uid="uid://dvihxldhw0isd" path="res://assets/models/Environment/Obstacles/Railing.tscn" id="22_wnxse"]
 [ext_resource type="PackedScene" uid="uid://wpoc1b7uvu1v" path="res://assets/Scenes/grind_path.tscn" id="23_b0onn"]
+[ext_resource type="Script" uid="uid://w71ij3lcxynv" path="res://assets/Scripts/HumanNpcSpawner.cs" id="24_qfue7"]
 [ext_resource type="Material" uid="uid://ch0bww6x7akvb" path="res://assets/materials/navmesh_debug.tres" id="24_wx5ig"]
+[ext_resource type="PackedScene" uid="uid://clll8hhfeikj8" path="res://assets/models/Npcs/HumanNpc.tscn" id="25_ydq0s"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ag2bn"]
 
@@ -417,16 +419,21 @@ transform = Transform3D(1, 0, 0, 0, 0.9396927, -0.3420202, 0, 0.3420202, 0.93969
 [node name="Node3D" parent="." unique_id=657898662 instance=ExtResource("23_b0onn")]
 transform = Transform3D(0.53, 0, 0, 0, 0.50684154, -0.15495698, 0, 0.15495698, 0.50684154, 7.5, -5.47, 19.3)
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=762619847]
+[node name="HumanNpcSpawner" type="Node3D" parent="." unique_id=1386428373 node_paths=PackedStringArray("NavigationRegions")]
+script = ExtResource("24_qfue7")
+HumanNpcScene = ExtResource("25_ydq0s")
+NavigationRegions = [NodePath("NavigationRegion3D")]
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="HumanNpcSpawner" unique_id=762619847]
 navigation_mesh = SubResource("NavigationMesh_b0onn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D" unique_id=1142073752]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="HumanNpcSpawner/NavigationRegion3D" unique_id=1142073752]
 transform = Transform3D(2.71, 0, 0, 0, 0.9563048, -14.618583, 0, 0.29237166, 47.81524, 10, -13.89274, 48)
 visible = false
 mesh = SubResource("PlaneMesh_b0onn")
 surface_material_override/0 = ExtResource("24_wx5ig")
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="NavigationRegion3D" unique_id=97803030]
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="HumanNpcSpawner/NavigationRegion3D" unique_id=97803030]
 transform = Transform3D(2.87, 0, 0, 0, 1, 0, 0, 0, 16, 10.572241, -28.702541, 107.76896)
 visible = false
 mesh = SubResource("PlaneMesh_qfue7")
