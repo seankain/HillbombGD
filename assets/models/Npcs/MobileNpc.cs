@@ -24,24 +24,55 @@ public partial class MobileNpc : CharacterBody3D, IObstacleType
 	[Export]
 	public PhysicalBoneSimulator3D boneSimulator;
 
-	[Export]
-	public Node3D entrance;
-
     public ObstacleType ObstacleType => ObstacleType.Human;
 
 
     public override void _Ready()
     {
-        var root = GetTree().Root;
+		// Destinations are assigned by the HumanNpcSpawner, which picks random
+		// points on the chunk's navigation meshes.
 		navigationAgent.MaxSpeed = Speed;
 		navigationAgent.TargetReached += HandleTargetReached;
-		if(entrance == null)
-        {
-			entrance = root.GetNode<Node3D>("/root/Main/Level/BuildingEntrance");
-        }
-		navigationAgent.TargetPosition = entrance.GlobalPosition;
 		animationPlayer.Play("WalkPhone");
     }
+
+	/// <summary>Activates a pooled NPC at the given spot with the given speed.</summary>
+	public void Activate(Vector3 spawnPosition, float speed)
+	{
+		Speed = speed;
+		navigationAgent.MaxSpeed = speed;
+		GlobalPosition = spawnPosition;
+		Velocity = Vector3.Zero;
+		Enable();
+		animationPlayer.Play("WalkPhone");
+	}
+
+	/// <summary>Sets the NPC's navigation destination in world space.</summary>
+	public void SetDestination(Vector3 worldPosition)
+	{
+		navigationAgent.TargetPosition = worldPosition;
+	}
+
+	public void Enable()
+	{
+		Visible = true;
+		ProcessMode = ProcessModeEnum.Inherit;
+		SetProcess(true);
+		SetPhysicsProcess(true);
+		if (agentCollisionShape != null)
+			agentCollisionShape.Disabled = false;
+	}
+
+	public void Disable()
+	{
+		Velocity = Vector3.Zero;
+		Visible = false;
+		SetProcess(false);
+		SetPhysicsProcess(false);
+		ProcessMode = ProcessModeEnum.Disabled;
+		if (agentCollisionShape != null)
+			agentCollisionShape.Disabled = true;
+	}
 
     private void HandleTargetReached()
     {
